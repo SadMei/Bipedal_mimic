@@ -1,0 +1,90 @@
+{
+  "seed": 0,
+  "evaluation_num_envs": 1,
+  "termination_enabled": true,
+  "evaluation_mode": "standard",
+  "motions": [
+    {
+      "motion": "jumps1_subject1",
+      "steps": 500,
+      "expected_steps": 12221,
+      "completion": 0.04091318222731364,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 44.91869414225221,
+      "normalized_return": 0.0367553343770986,
+      "mean_errors": {
+        "body_position_error": 0.03655338721210137,
+        "body_orientation_error": 0.07812619007378817,
+        "root_position_error": 0.1534765806174837,
+        "root_orientation_error": 0.050723763246089223
+      }
+    },
+    {
+      "motion": "run1_subject2",
+      "steps": 500,
+      "expected_steps": 11890,
+      "completion": 0.04205214465937763,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.3005018979311,
+      "normalized_return": 0.040622793858646845,
+      "mean_errors": {
+        "body_position_error": 0.02608491242537275,
+        "body_orientation_error": 0.07561841840669513,
+        "root_position_error": 0.06852687636413611,
+        "root_orientation_error": 0.047526434895582496
+      }
+    },
+    {
+      "motion": "walk1_subject1",
+      "steps": 500,
+      "expected_steps": 13065,
+      "completion": 0.038270187523918864,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.8124425560236,
+      "normalized_return": 0.037361226602390815,
+      "mean_errors": {
+        "body_position_error": 0.02251334078097716,
+        "body_orientation_error": 0.06569256318733097,
+        "root_position_error": 0.050322964046616105,
+        "root_orientation_error": 0.03023162480164319
+      }
+    }
+  ],
+  "successes": 0,
+  "success_rate": 0.0,
+  "n_failed": 0,
+  "failed": [],
+  "mean_completion": 0.04041183813687004,
+  "evaluation_complete": false,
+  "normalized_return": 0.03824645161271208,
+  "normalized_return_framew": 0.03820519652361924,
+  "protocol": "first frame; full clip unless explicitly limited; deterministic policy; friction 1.0; no reset/sensor/action noise or domain randomization; self collisions disabled; height/tilt failure termination enabled",
+  "normalization": "per-clip undiscounted reward / (5 * control_dt * (frames - 1)); arithmetic mean over clips; no reward after failure",
+  "policy": "outputs/supermimic/bsrl_12dof_fullbody_30k_gpu6_20261104_223752/policy_best.pt",
+  "iteration": 25000,
+  "training_environment_steps": 256131072,
+  "evaluated_at": "2026-11-05T06:27:15.694913+00:00",
+  "evaluation_limit": 500,
+  "reference_schema": "full_body_129_bsrl_v1",
+  "reference_schema_inferred": false,
+  "mouse_perturbations_enabled": false,
+  "mouse_perturbation_steps": 0
+}

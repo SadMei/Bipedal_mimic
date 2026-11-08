@@ -1,0 +1,90 @@
+{
+  "seed": 0,
+  "evaluation_num_envs": 1,
+  "termination_enabled": true,
+  "evaluation_mode": "standard",
+  "motions": [
+    {
+      "motion": "jumps1_subject1",
+      "steps": 500,
+      "expected_steps": 12221,
+      "completion": 0.04091318222731364,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 46.01938537880778,
+      "normalized_return": 0.03765598999984271,
+      "mean_errors": {
+        "body_position_error": 0.03111070955079049,
+        "body_orientation_error": 0.07855183633044362,
+        "root_position_error": 0.08411231452831998,
+        "root_orientation_error": 0.04483369550248608
+      }
+    },
+    {
+      "motion": "run1_subject2",
+      "steps": 500,
+      "expected_steps": 11890,
+      "completion": 0.04205214465937763,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.70164480060339,
+      "normalized_return": 0.040960172246092004,
+      "mean_errors": {
+        "body_position_error": 0.025924286160618065,
+        "body_orientation_error": 0.07025489205121994,
+        "root_position_error": 0.05208005259558558,
+        "root_orientation_error": 0.04354908988531679
+      }
+    },
+    {
+      "motion": "walk1_subject1",
+      "steps": 500,
+      "expected_steps": 13065,
+      "completion": 0.038270187523918864,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 49.088516503572464,
+      "normalized_return": 0.03757253463725409,
+      "mean_errors": {
+        "body_position_error": 0.020497295374050737,
+        "body_orientation_error": 0.05571383424475789,
+        "root_position_error": 0.0596493242578581,
+        "root_orientation_error": 0.032536439829040316
+      }
+    }
+  ],
+  "successes": 0,
+  "success_rate": 0.0,
+  "n_failed": 0,
+  "failed": [],
+  "mean_completion": 0.04041183813687004,
+  "evaluation_complete": false,
+  "normalized_return": 0.0387295656277296,
+  "normalized_return_framew": 0.03868343734747784,
+  "protocol": "first frame; full clip unless explicitly limited; deterministic policy; friction 1.0; no reset/sensor/action noise or domain randomization; self collisions disabled; height/tilt failure termination enabled",
+  "normalization": "per-clip undiscounted reward / (5 * control_dt * (frames - 1)); arithmetic mean over clips; no reward after failure",
+  "policy": "outputs/supermimic/bsrl_closed_ankle_fullbody_30k_gpu7_20261104_233432/policy_best.pt",
+  "iteration": 18000,
+  "training_environment_steps": 92225536,
+  "evaluated_at": "2026-11-05T06:24:24.299460+00:00",
+  "evaluation_limit": 500,
+  "reference_schema": "full_body_129_bsrl_v1",
+  "reference_schema_inferred": false,
+  "mouse_perturbations_enabled": false,
+  "mouse_perturbation_steps": 0
+}

@@ -1,0 +1,207 @@
+<mujoco model="BSRL CAD-zero connected ankles">
+  <compiler angle="radian" meshdir="../meshes/" />
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0.9 0.9 0.9" />
+    <rgba haze="0.15 0.25 0.35 1" />
+    <global azimuth="135" elevation="-20" offwidth="1280" offheight="720" />
+  </visual>
+  <asset>
+    <texture type="skybox" name="skybox" builtin="gradient" mark="random" rgb1="0.2 0.3 0.4" rgb2="0 0 0" markrgb="1 1 1" random="0.001" width="1000" height="6000" />
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="1 1 1" rgb2="1 1 1" markrgb="0 0 0" width="300" height="300" />
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0" />
+    <mesh name="base_waist" content_type="model/obj" file="base_waist.obj" />
+    <mesh name="link_right_hip_yaw" content_type="model/obj" file="link_right_hip_yaw.obj" />
+    <mesh name="link_right_hip_roll" content_type="model/obj" file="link_right_hip_roll.obj" />
+    <mesh name="link_right_thigh" content_type="model/obj" file="link_right_thigh.obj" />
+    <mesh name="link_right_shank" content_type="model/obj" file="link_right_shank.obj" />
+    <mesh name="link_right_ankle_pitch" content_type="model/obj" file="link_right_ankle_pitch.obj" />
+    <mesh name="link_right_ankle_roll" content_type="model/obj" file="link_right_ankle_roll.obj" />
+    <mesh name="link_left_hip_yaw" content_type="model/obj" file="link_left_hip_yaw.obj" />
+    <mesh name="link_left_hip_roll" content_type="model/obj" file="link_left_hip_roll.obj" />
+    <mesh name="link_left_thigh" content_type="model/obj" file="link_left_thigh.obj" />
+    <mesh name="link_left_shank" content_type="model/obj" file="link_left_shank.obj" />
+    <mesh name="link_left_ankle_pitch" content_type="model/obj" file="link_left_ankle_pitch.obj" />
+    <mesh name="link_left_ankle_roll" content_type="model/obj" file="link_left_ankle_roll.obj" />
+    <mesh name="right_heel_collision_flat" content_type="model/obj" file="right_heel_collision_flat.obj" />
+    <mesh name="right_toe_collision_flat" content_type="model/obj" file="right_toe_collision_flat.obj" />
+    <mesh name="left_heel_collision_flat" content_type="model/obj" file="left_heel_collision_flat.obj" />
+    <mesh name="left_toe_collision_flat" content_type="model/obj" file="left_toe_collision_flat.obj" />
+    <mesh name="cad_right_shank" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_shank.obj" />
+    <mesh name="cad_right_long_crank" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_long_crank.obj" />
+    <mesh name="cad_right_long_rod" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_long_rod.obj" />
+    <mesh name="cad_right_long_foot" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_long_foot.obj" />
+    <mesh name="cad_right_short_crank" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_short_crank.obj" />
+    <mesh name="cad_right_short_rod" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_short_rod.obj" />
+    <mesh name="cad_right_short_foot" file="parallel_ankle/cad_zero_c18b94eb33e281e6/right_short_foot.obj" />
+    <mesh name="cad_left_shank" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_shank.obj" />
+    <mesh name="cad_left_long_crank" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_long_crank.obj" />
+    <mesh name="cad_left_long_rod" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_long_rod.obj" />
+    <mesh name="cad_left_long_foot" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_long_foot.obj" />
+    <mesh name="cad_left_short_crank" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_short_crank.obj" />
+    <mesh name="cad_left_short_rod" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_short_rod.obj" />
+    <mesh name="cad_left_short_foot" file="parallel_ankle/cad_zero_c18b94eb33e281e6/left_short_foot.obj" />
+  </asset>
+  <worldbody>
+    <geom name="floor" size="0 0 0.01" type="plane" material="groundplane" contype="1" conaffinity="0" priority="1" friction="0.6" condim="3" />
+    <light diffuse="0.5 0.5 0.5" pos="-3 -3 5" dir="3 3 -5" castshadow="true" />
+    <body name="base_link" pos="0 0 0.881216">
+      <inertial pos="-0.005769 0.000011 0.032981" mass="4.027447" diaginertia="0.047080 0.008222 0.047013" />
+      <joint name="base_freejoint" type="free" />
+      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.65098 0.61961 0.58824 1" mesh="base_waist" />
+      <geom group="3" type="box" size="0.05 0.05 0.04" pos="-0.02 0 -0.006" rgba="0.65098 0.61961 0.58824 1" />
+      <geom group="3" type="box" size="0.06 0.15 0.0175" pos="-0.02 0 0.0525" rgba="0.65098 0.61961 0.58824 1" />
+      <body name="link_right_hip_yaw" pos="0 -0.13999 0.0538">
+        <inertial pos="-0.093082 0.000430 -0.105932" mass="1.725554" diaginertia="0.001144 0.001553 0.001112" />
+        <joint name="joint_right_hip_yaw" pos="0 0 0" axis="0 0 1" range="-0.4 0.6" actuatorfrcrange="-112 112" />
+        <geom pos="0 0 0" quat="0 0 1 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.898039 0.917647 0.929412 1" mesh="link_right_hip_yaw" />
+        <geom group="3" type="sphere" size="0.04" pos="-0.103 0.0005 -0.1108" rgba="0.898039 0.917647 0.929412 1" />
+        <body name="link_right_hip_roll" pos="-0.103 0.0005 -0.1108">
+          <inertial pos="0.101963 -0.006668 -0.000078" mass="1.620465" diaginertia="0.000510 0.000919 0.000797" />
+          <joint name="joint_right_hip_roll" pos="0 0 0" axis="1 0 0" range="-0.3 0.3" actuatorfrcrange="-216 216" />
+          <geom pos="0 0 0" quat="0.707107 0 0.707107 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.898039 0.917647 0.929412 1" mesh="link_right_hip_roll" />
+          <geom group="3" type="sphere" size="0.04" pos="0.105 -0.009 0" rgba="0.898039 0.917647 0.929412 1" />
+          <body name="link_right_thigh" pos="0.105 -0.011 0">
+            <inertial pos="-0.007760 0.008550 -0.137659" mass="2.556965" diaginertia="0.017380 0.019338 0.004566" />
+            <joint name="joint_right_hip_pitch" pos="0 0 0" axis="0 1 0" range="-1.5 0.3" actuatorfrcrange="-216 216" />
+            <geom pos="0 0 0" quat="0.5 -0.5 0.5 0.5" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792157 0.819608 0.933333 1" mesh="link_right_thigh" />
+            <geom group="3" type="sphere" size="0.055" pos="-0.008 0.006 -0.115" rgba="0.792157 0.819608 0.933333 1" />
+            <geom group="3" type="cylinder" size="0.04 0.08" pos="0.018 0.018 -0.215" rgba="0.792157 0.819608 0.933333 1" />
+            <geom group="3" type="cylinder" size="0.035 0.053" pos="0.018 0.025 -0.328" rgba="0.792157 0.819608 0.933333 1" />
+            <body name="link_right_shank" pos="0 0.0254 -0.3852">
+              <inertial pos="-0.012308 -0.000267 -0.145431" mass="2.492287" diaginertia="0.018141 0.019324 0.001880" />
+              <joint name="joint_right_knee_pitch" pos="0 0 0" axis="0 1 0" range="-0.1 2.2" actuatorfrcrange="-216 216" />
+              <geom pos="0.0 0.0 -0.355" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="cad_right_shank" />
+              <geom group="3" type="cylinder" size="0.025 0.1266" pos="0 0 -0.1724" rgba="1 1 1 1" />
+              <body name="link_right_ankle_pitch" pos="0 0 -0.355">
+                <inertial pos="0.000000 0.000000 -0.000005" mass="0.091152" diaginertia="0.000017 0.000021 0.000034" />
+                <joint name="joint_right_ankle_pitch" pos="0 0 0" axis="0 1 0" range="-0.6 0.6" actuatorfrclimited="false" />
+                <geom quat="0.5 -0.5 -0.5 -0.5" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.776471 0.756863 0.737255 1" mesh="link_right_ankle_pitch" />
+                <geom group="3" type="cylinder" size="0.025 0.006" pos="0 0 0" rgba="0.776471 0.756863 0.737255 1" />
+                <body name="link_right_ankle_roll">
+                  <inertial pos="0.029971 0.000511 -0.062111" mass="0.831235" diaginertia="0.000678 0.004489 0.004385" />
+                  <joint name="joint_right_ankle_roll" pos="0 0 0" axis="1 0 0" range="-0.52 0.52" actuatorfrclimited="false" />
+                  <geom quat="0.707107 0 0.707107 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link_right_ankle_roll" />
+                  <geom group="3" type="cylinder" size="0.025 0.0175" pos="-0.015 0 -0.044" quat="0.707107 0.707107 0 0" rgba="1 1 1 1" />
+                  <geom group="3" type="mesh" mesh="right_heel_collision_flat" rgba="1 1 1 1" />
+                  <geom group="3" type="mesh" mesh="right_toe_collision_flat" rgba="1 1 1 1" />
+                  <site name="foot_end_right_1" pos="-0.06702746999999999 -0.02199999999820395 -0.01179703000010773" size=".003" />
+                  <site name="foot_end_right_2" pos="-0.06702746500000001 0.02200000000179605 -0.0117970199998923" size=".003" />
+                  <geom name="cad_visual_right_long_foot" type="mesh" mesh="cad_right_long_foot" pos="-0.06702746999999999 -0.02199999999820395 -0.011797030000107733" density="0" contype="0" conaffinity="0" group="2" rgba=".85 .85 .85 1" />
+                  <geom name="cad_visual_right_short_foot" type="mesh" mesh="cad_right_short_foot" pos="-0.06702746500000001 0.022000000001796048 -0.0117970199998923" density="0" contype="0" conaffinity="0" group="2" rgba=".85 .85 .85 1" />
+                </body>
+              </body>
+              <body name="crank_right_1" pos="-0.01001815 -0.0219999999994036 -0.1099991799999145" quat="0 -0.08709703854278585 0 0.9961998323012691">
+                <joint name="motor_right_1" type="hinge" axis="0 1 0" limited="false" damping="0" armature="0" />
+                <geom type="capsule" fromto="0 0 0 0.0679998645456326 0 0" size=".004" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                <body name="rod_right_1" pos="0.0679998645456326 0 0" quat="2.440792879519031e-12 0.9977634097656384 -1.635191397653972e-13 0.06684443232496515">
+                  <joint name="rod_ball_right_1" type="ball" damping="0" />
+                  <geom type="capsule" fromto="0 0 0 0 0 0.2452000144727245" size=".003" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                  <site name="rod_end_right_1" pos="0 0 0.2452000144727245" size=".003" />
+                  <geom name="cad_visual_right_long_rod" type="mesh" mesh="cad_right_long_rod" density="0" contype="0" conaffinity="0" group="2" rgba=".15 .55 .95 1" />
+                </body>
+                <geom name="cad_visual_right_long_crank" type="mesh" mesh="cad_right_long_crank" density="0" contype="0" conaffinity="0" group="2" rgba=".15 .55 .95 1" />
+              </body>
+              <body name="crank_right_2" pos="-0.01003136 0.02200000000098812 -0.1899992450000854" quat="0 -0.08708736383861918 0 0.9962006781063943">
+                <joint name="motor_right_2" type="hinge" axis="0 1 0" limited="false" damping="0" armature="0" />
+                <geom type="capsule" fromto="0 0 0 0.06799983998877179 0 0" size=".004" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                <body name="rod_right_2" pos="0.06799983998877179 0 0" quat="2.439858679650878e-12 0.9983750683788789 -1.392601925599748e-13 0.05698440874018786">
+                  <joint name="rod_ball_right_2" type="ball" damping="0" />
+                  <geom type="capsule" fromto="0 0 0 0 0 0.1653000002095814" size=".003" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                  <site name="rod_end_right_2" pos="0 0 0.1653000002095814" size=".003" />
+                  <geom name="cad_visual_right_short_rod" type="mesh" mesh="cad_right_short_rod" density="0" contype="0" conaffinity="0" group="2" rgba=".98 .48 .12 1" />
+                </body>
+                <geom name="cad_visual_right_short_crank" type="mesh" mesh="cad_right_short_crank" density="0" contype="0" conaffinity="0" group="2" rgba=".98 .48 .12 1" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="link_left_hip_yaw" pos="0 0.13999 0.0538">
+        <inertial pos="-0.093082 -0.000430 -0.105932" mass="1.725555" diaginertia="0.001144 0.001553 0.001112" />
+        <joint name="joint_left_hip_yaw" pos="0 0 0" axis="0 0 1" range="-0.6 0.4" actuatorfrcrange="-112 112" />
+        <geom pos="0 0 0" quat="0 0 1 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link_left_hip_yaw" />
+        <geom group="3" type="sphere" size="0.04" pos="-0.103 -0.0005 -0.1108" rgba="1 1 1 1" />
+        <body name="link_left_hip_roll" pos="-0.103 -0.0005 -0.1108">
+          <inertial pos="0.101963 0.006668 -0.000078" mass="1.620465" diaginertia="0.000510 0.000919 0.000797" />
+          <joint name="joint_left_hip_roll" pos="0 0 0" axis="1 0 0" range="-0.3 0.3" actuatorfrcrange="-216 216" />
+          <geom pos="0 0 0" quat="0.707107 0 0.707107 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link_left_hip_roll" />
+          <geom group="3" type="sphere" size="0.04" pos="0.105 0.009 0" rgba="1 1 1 1" />
+          <body name="link_left_thigh" pos="0.105 0 0">
+            <inertial pos="-0.007903 0.002539 -0.138057" mass="2.542662" diaginertia="0.017304 0.019257 0.004552" />
+            <joint name="joint_left_hip_pitch" pos="0 0 0" axis="0 1 0" range="-1.5 0.3" actuatorfrcrange="-216 216" />
+            <geom pos="0 0 0" quat="0.5 -0.5 0.5 0.5" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792157 0.819608 0.933333 1" mesh="link_left_thigh" />
+            <geom group="3" type="sphere" size="0.055" pos="-0.008 -0.006 -0.115" rgba="0.792157 0.819608 0.933333 1" />
+            <geom group="3" type="cylinder" size="0.04 0.08" pos="0.018 -0.018 -0.215" rgba="0.792157 0.819608 0.933333 1" />
+            <geom group="3" type="cylinder" size="0.035 0.053" pos="0.018 -0.025 -0.328" rgba="0.792157 0.819608 0.933333 1" />
+            <body name="link_left_shank" pos="0 -0.0144 -0.3852">
+              <inertial pos="-0.012308 0.000266 -0.145431" mass="2.492309" diaginertia="0.018141 0.019324 0.001880" />
+              <joint name="joint_left_knee_pitch" pos="0 0 0" axis="0 1 0" range="-0.1 2.2" actuatorfrcrange="-216 216" />
+              <geom pos="0.0 0.0 -0.3549" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792157 0.819608 0.933333 1" mesh="cad_left_shank" />
+              <geom group="3" type="cylinder" size="0.025 0.12655" pos="0 0 -0.17235" rgba="0.792157 0.819608 0.933333 1" />
+              <body name="link_left_ankle_pitch" pos="0 0 -0.3549">
+                <inertial pos="0.000000 0.000000 -0.000005" mass="0.091152" diaginertia="0.000017 0.000021 0.000034" />
+                <joint name="joint_left_ankle_pitch" pos="0 0 0" axis="0 1 0" range="-0.6 0.6" actuatorfrclimited="false" />
+                <geom quat="0.5 -0.5 -0.5 -0.5" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792157 0.819608 0.933333 1" mesh="link_left_ankle_pitch" />
+                <geom group="3" type="cylinder" size="0.025 0.006" pos="0 0 0" rgba="0.792157 0.819608 0.933333 1" />
+                <body name="link_left_ankle_roll">
+                  <inertial pos="0.029983 -0.000511 -0.062089" mass="0.831234" diaginertia="0.000678 0.004490 0.004385" />
+                  <joint name="joint_left_ankle_roll" pos="0 0 0" axis="1 0 0" range="-0.52 0.52" actuatorfrclimited="false" />
+                  <geom quat="0.707107 0 0.707107 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792157 0.819608 0.933333 1" mesh="link_left_ankle_roll" />
+                  <geom group="3" type="cylinder" size="0.025 0.0175" pos="-0.015 0 -0.044" quat="0.707107 0.707107 0 0" rgba="0.792157 0.819608 0.933333 1" />
+                  <geom group="3" type="mesh" mesh="left_heel_collision_flat" rgba="0.792157 0.819608 0.933333 1" />
+                  <geom group="3" type="mesh" mesh="left_toe_collision_flat" rgba="0.792157 0.819608 0.933333 1" />
+                  <site name="foot_end_left_1" pos="-0.06702745999809623 0.02200000000032818 -0.01189701500032816" size=".003" />
+                  <site name="foot_end_left_2" pos="-0.06702746999831166 -0.02199999999967182 -0.01189701500032822" size=".003" />
+                  <geom name="cad_visual_left_long_foot" type="mesh" mesh="cad_left_long_foot" pos="-0.06702745999809623 0.022000000000328184 -0.011897015000328165" density="0" contype="0" conaffinity="0" group="2" rgba=".85 .85 .85 1" />
+                  <geom name="cad_visual_left_short_foot" type="mesh" mesh="cad_left_short_foot" pos="-0.06702746999831166 -0.021999999999671817 -0.01189701500032822" density="0" contype="0" conaffinity="0" group="2" rgba=".85 .85 .85 1" />
+                </body>
+              </body>
+              <body name="crank_left_1" pos="-0.01001814999954683 0.02200000000037696 -0.10999746000005" quat="0 -0.08710948878165123 0 0.9961987437073987">
+                <joint name="motor_left_1" type="hinge" axis="0 1 0" limited="false" damping="0" armature="0" />
+                <geom type="capsule" fromto="0 0 0 0.06800015898540041 0 0" size=".004" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                <body name="rod_left_1" pos="0.06800015898540041 0 0" quat="-9.924107050737003e-14 0.9977625750754366 6.649827853448351e-15 0.06685689028689239">
+                  <joint name="rod_ball_left_1" type="ball" damping="0" />
+                  <geom type="capsule" fromto="0 0 0 0 0 0.2451999946923037" size=".003" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                  <site name="rod_end_left_1" pos="0 0 0.2451999946923037" size=".003" />
+                  <geom name="cad_visual_left_long_rod" type="mesh" mesh="cad_left_long_rod" density="0" contype="0" conaffinity="0" group="2" rgba=".15 .55 .95 1" />
+                </body>
+                <geom name="cad_visual_left_long_crank" type="mesh" mesh="cad_left_long_crank" density="0" contype="0" conaffinity="0" group="2" rgba=".15 .55 .95 1" />
+              </body>
+              <body name="crank_left_2" pos="-0.01003135999898421 -0.02199999999962298 -0.1899975150000482" quat="0 -0.08709987991937015 0 0.9961995838776642">
+                <joint name="motor_left_2" type="hinge" axis="0 1 0" limited="false" damping="0" armature="0" />
+                <geom type="capsule" fromto="0 0 0 0.06800014105548673 0 0" size=".004" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                <body name="rod_left_2" pos="0.06800014105548673 0 0" quat="-1.474894495285412e-13 0.9983743516018311 8.420139235971012e-15 0.05699696538960189">
+                  <joint name="rod_ball_left_2" type="ball" damping="0" />
+                  <geom type="capsule" fromto="0 0 0 0 0 0.1652999899261537" size=".003" mass="0.001" contype="0" conaffinity="0" group="5" rgba="0 0 0 0" />
+                  <site name="rod_end_left_2" pos="0 0 0.1652999899261537" size=".003" />
+                  <geom name="cad_visual_left_short_rod" type="mesh" mesh="cad_left_short_rod" density="0" contype="0" conaffinity="0" group="2" rgba=".98 .48 .12 1" />
+                </body>
+                <geom name="cad_visual_left_short_crank" type="mesh" mesh="cad_left_short_crank" density="0" contype="0" conaffinity="0" group="2" rgba=".98 .48 .12 1" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor name="drive_joint_right_hip_yaw" joint="joint_right_hip_yaw" gear="1" />
+    <motor name="drive_joint_right_hip_roll" joint="joint_right_hip_roll" gear="1" />
+    <motor name="drive_joint_right_hip_pitch" joint="joint_right_hip_pitch" gear="1" />
+    <motor name="drive_joint_right_knee_pitch" joint="joint_right_knee_pitch" gear="1" />
+    <motor name="drive_joint_left_hip_yaw" joint="joint_left_hip_yaw" gear="1" />
+    <motor name="drive_joint_left_hip_roll" joint="joint_left_hip_roll" gear="1" />
+    <motor name="drive_joint_left_hip_pitch" joint="joint_left_hip_pitch" gear="1" />
+    <motor name="drive_joint_left_knee_pitch" joint="joint_left_knee_pitch" gear="1" />
+    <motor name="drive_right_1" joint="motor_right_1" gear="1" ctrllimited="true" ctrlrange="-112 112" forcelimited="true" forcerange="-112 112" />
+    <motor name="drive_right_2" joint="motor_right_2" gear="1" ctrllimited="true" ctrlrange="-112 112" forcelimited="true" forcerange="-112 112" />
+    <motor name="drive_left_1" joint="motor_left_1" gear="1" ctrllimited="true" ctrlrange="-112 112" forcelimited="true" forcerange="-112 112" />
+    <motor name="drive_left_2" joint="motor_left_2" gear="1" ctrllimited="true" ctrlrange="-112 112" forcelimited="true" forcerange="-112 112" />
+  </actuator>
+  <equality>
+    <connect name="closure_right_1" site1="rod_end_right_1" site2="foot_end_right_1" solref="0.002 1" solimp="0.9999 0.9999 .0001" />
+    <connect name="closure_right_2" site1="rod_end_right_2" site2="foot_end_right_2" solref="0.002 1" solimp="0.9999 0.9999 .0001" />
+    <connect name="closure_left_1" site1="rod_end_left_1" site2="foot_end_left_1" solref="0.002 1" solimp="0.9999 0.9999 .0001" />
+    <connect name="closure_left_2" site1="rod_end_left_2" site2="foot_end_left_2" solref="0.002 1" solimp="0.9999 0.9999 .0001" />
+  </equality>
+</mujoco>

@@ -1,0 +1,417 @@
+{
+  "source": "urdf/export.urdf",
+  "side": "left",
+  "source_faces": 255102,
+  "group_faces": {
+    "shank": 222502,
+    "long_crank": 4428,
+    "long_rod": 9072,
+    "long_foot": 2776,
+    "short_crank": 4428,
+    "short_rod": 9120,
+    "short_foot": 2776
+  },
+  "assignments": [
+    {
+      "component": 0,
+      "owner": "long_rod",
+      "faces": 1480
+    },
+    {
+      "component": 1,
+      "owner": "long_crank",
+      "faces": 2568
+    },
+    {
+      "component": 2,
+      "owner": "long_rod",
+      "faces": 2984
+    },
+    {
+      "component": 3,
+      "owner": "long_rod",
+      "faces": 144
+    },
+    {
+      "component": 4,
+      "owner": "long_rod",
+      "faces": 1480
+    },
+    {
+      "component": 5,
+      "owner": "long_rod",
+      "faces": 2984
+    },
+    {
+      "component": 6,
+      "owner": "long_foot",
+      "faces": 2568
+    },
+    {
+      "component": 7,
+      "owner": "short_crank",
+      "faces": 460
+    },
+    {
+      "component": 8,
+      "owner": "shank",
+      "faces": 10568
+    },
+    {
+      "component": 9,
+      "owner": "long_crank",
+      "faces": 460
+    },
+    {
+      "component": 10,
+      "owner": "long_crank",
+      "faces": 1192
+    },
+    {
+      "component": 11,
+      "owner": "short_crank",
+      "faces": 1192
+    },
+    {
+      "component": 12,
+      "owner": "short_crank",
+      "faces": 2568
+    },
+    {
+      "component": 13,
+      "owner": "short_rod",
+      "faces": 1480
+    },
+    {
+      "component": 14,
+      "owner": "short_rod",
+      "faces": 2984
+    },
+    {
+      "component": 15,
+      "owner": "short_rod",
+      "faces": 192
+    },
+    {
+      "component": 16,
+      "owner": "short_rod",
+      "faces": 1480
+    },
+    {
+      "component": 17,
+      "owner": "short_foot",
+      "faces": 2568
+    },
+    {
+      "component": 18,
+      "owner": "short_rod",
+      "faces": 2984
+    },
+    {
+      "component": 19,
+      "owner": "shank",
+      "faces": 304
+    },
+    {
+      "component": 20,
+      "owner": "shank",
+      "faces": 304
+    },
+    {
+      "component": 21,
+      "owner": "shank",
+      "faces": 1048
+    },
+    {
+      "component": 22,
+      "owner": "shank",
+      "faces": 380
+    },
+    {
+      "component": 23,
+      "owner": "long_crank",
+      "faces": 208
+    },
+    {
+      "component": 24,
+      "owner": "long_foot",
+      "faces": 208
+    },
+    {
+      "component": 25,
+      "owner": "shank",
+      "faces": 1782
+    },
+    {
+      "component": 26,
+      "owner": "shank",
+      "faces": 280
+    },
+    {
+      "component": 27,
+      "owner": "shank",
+      "faces": 280
+    },
+    {
+      "component": 28,
+      "owner": "shank",
+      "faces": 280
+    },
+    {
+      "component": 29,
+      "owner": "short_foot",
+      "faces": 208
+    },
+    {
+      "component": 30,
+      "owner": "short_crank",
+      "faces": 208
+    },
+    {
+      "component": 31,
+      "owner": "shank",
+      "faces": 248
+    },
+    {
+      "component": 32,
+      "owner": "shank",
+      "faces": 280
+    },
+    {
+      "component": 33,
+      "owner": "shank",
+      "faces": 1746
+    },
+    {
+      "component": 34,
+      "owner": "shank",
+      "faces": 148
+    },
+    {
+      "component": 35,
+      "owner": "shank",
+      "faces": 828
+    },
+    {
+      "component": 36,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 37,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 38,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 39,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 40,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 41,
+      "owner": "shank",
+      "faces": 23486
+    },
+    {
+      "component": 42,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 43,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 44,
+      "owner": "shank",
+      "faces": 13274
+    },
+    {
+      "component": 45,
+      "owner": "shank",
+      "faces": 7212
+    },
+    {
+      "component": 46,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 47,
+      "owner": "shank",
+      "faces": 24200
+    },
+    {
+      "component": 48,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 49,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 50,
+      "owner": "shank",
+      "faces": 13442
+    },
+    {
+      "component": 51,
+      "owner": "shank",
+      "faces": 15144
+    },
+    {
+      "component": 52,
+      "owner": "shank",
+      "faces": 1634
+    },
+    {
+      "component": 53,
+      "owner": "shank",
+      "faces": 1746
+    },
+    {
+      "component": 54,
+      "owner": "shank",
+      "faces": 148
+    },
+    {
+      "component": 55,
+      "owner": "shank",
+      "faces": 828
+    },
+    {
+      "component": 56,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 57,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 58,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 59,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 60,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 61,
+      "owner": "shank",
+      "faces": 23486
+    },
+    {
+      "component": 62,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 63,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 64,
+      "owner": "shank",
+      "faces": 13274
+    },
+    {
+      "component": 65,
+      "owner": "shank",
+      "faces": 7212
+    },
+    {
+      "component": 66,
+      "owner": "shank",
+      "faces": 376
+    },
+    {
+      "component": 67,
+      "owner": "shank",
+      "faces": 24200
+    },
+    {
+      "component": 68,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 69,
+      "owner": "shank",
+      "faces": 1
+    },
+    {
+      "component": 70,
+      "owner": "shank",
+      "faces": 13442
+    },
+    {
+      "component": 71,
+      "owner": "shank",
+      "faces": 15144
+    },
+    {
+      "component": 72,
+      "owner": "shank",
+      "faces": 1634
+    }
+  ],
+  "mounts_m": [
+    [
+      -0.06702745999809623,
+      0.022000000000328184,
+      -0.011897015000328165
+    ],
+    [
+      -0.06702746999831166,
+      -0.021999999999671817,
+      -0.01189701500032822
+    ]
+  ],
+  "pivots_m": [
+    [
+      -0.010018149999546831,
+      0.02200000000037696,
+      0.24490253999995004
+    ],
+    [
+      -0.010031359998984213,
+      -0.021999999999622977,
+      0.16490248499995175
+    ]
+  ],
+  "crank_ends_m": [
+    [
+      -0.07698632999929587,
+      0.02200000000037696,
+      0.233100654999623
+    ],
+    [
+      -0.0769997499991196,
+      -0.021999999999622977,
+      0.15310189499962296
+    ]
+  ]
+}

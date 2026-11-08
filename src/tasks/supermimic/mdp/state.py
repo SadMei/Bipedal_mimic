@@ -1,0 +1,156 @@
+"""Explicit state layout and differentiable quaternion/observation operations.
+
+State = [root xyz, wxyz, joint positions, world linear/angular velocity,
+joint velocities]. For N joints this has 13 + 2N entries. Root xyz excludes
+the environment origin. Context = [foot friction, N encoder biases, torso COM xyz].
+"""
+
+import torch
+from torch import Tensor
+
+from ..config.morphology import state_layout
+
+
+def quat_conjugate(q: Tensor) -> Tensor:
+  return torch.cat((q[..., :1], -q[..., 1:]), dim=-1)
+
+
+def quat_mul(a: Tensor, b: Tensor) -> Tensor:
+  aw, av, bw, bv = a[..., :1], a[..., 1:], b[..., :1], b[..., 1:]
+  return torch.cat(
+    (
+      aw * bw - (av * bv).sum(-1, keepdim=True),
+      aw * bv + bw * av + torch.linalg.cross(av, bv),
+    ),
+    dim=-1,
+  )
+
+
+def quat_apply(q: Tensor, v: Tensor) -> Tensor:
+  # Broadcasting also supports a single vector and batches of quaternions.
+  axis, v = torch.broadcast_tensors(q[..., 1:], v)
+  cross = 2 * torch.linalg.cross(axis, v)
+  return v + q[..., :1] * cross + torch.linalg.cross(axis, cross)
+
+
+def quat_inverse_apply(q: Tensor, v: Tensor) -> Tensor:
+  return quat_apply(quat_conjugate(q), v)
+
+
+def quat_normalize(q: Tensor) -> Tensor:
+  return q / torch.linalg.vector_norm(q, dim=-1, keepdim=True).clamp_min(1e-12)
+
+
+def rotvec_to_quat(vector: Tensor) -> Tensor:
+  angle = torch.linalg.vector_norm(vector, dim=-1, keepdim=True)
+  # sinc avoids division by zero and has the correct derivative at the origin.
+  return torch.cat(
+    (torch.cos(angle / 2), 0.5 * torch.sinc(angle / (2 * torch.pi)) * vector),
+    dim=-1,
+  )
+
+
+def quat_to_rotvec(q: Tensor) -> Tensor:
+  q = quat_normalize(q)
+  q = torch.where(q[..., :1] < 0, -q, q)
+  vector = q[..., 1:]
+  sine = torch.linalg.vector_norm(vector, dim=-1, keepdim=True)
+  angle = 2 * torch.atan2(sine, q[..., :1].clamp_min(1e-12))
+  scale = torch.where(sine > 1e-7, angle / sine.clamp_min(1e-12), 2 + sine.square() / 3)
+  return scale * vector
+
+
+def yaw_quat(q: Tensor) -> Tensor:
+  w, x, y, z = q.unbind(-1)
+  yaw = torch.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+  zero = torch.zeros_like(yaw)
+  return torch.stack((torch.cos(yaw / 2), zero, zero, torch.sin(yaw / 2)), dim=-1)
+
+
+def rotation_error_squared(a: Tensor, b: Tensor) -> Tensor:
+  delta = quat_mul(a, quat_conjugate(b))
+  sine = torch.linalg.vector_norm(delta[..., 1:], dim=-1)
+  angle = 2 * torch.atan2(sine, delta[..., 0].abs().clamp_min(1e-8))
+  return angle.square()
+
+
+def motion_anchor_ori_b(
+  robot_anchor_quat: Tensor, motion_anchor_quat: Tensor
+) -> Tensor:
+  """Reference anchor in robot anchor frame, matching whole_body_tracking.
+
+  Flatten the first two rotation-matrix columns in row-major order:
+  [R00, R01, R10, R11, R20, R21]. G1 uses torso_link as its anchor.
+  """
+  rotation = quat_normalize(
+    quat_mul(quat_conjugate(robot_anchor_quat), motion_anchor_quat)
+  )
+  x_axis = quat_apply(rotation, rotation.new_tensor([1, 0, 0]))
+  y_axis = quat_apply(rotation, rotation.new_tensor([0, 1, 0]))
+  return torch.stack((x_axis, y_axis), dim=-1).flatten(-2)
+
+
+def observe(
+  state: Tensor,
+  previous_action: Tensor,
+  default_q: Tensor,
+  context: Tensor,
+  reference_quat: Tensor | None = None,
+  anchor_orientation: Tensor | None = None,
+) -> Tensor:
+  gravity = state.new_tensor([0, 0, -1])
+  relative = []
+  if reference_quat is not None:
+    rotation = quat_normalize(quat_mul(quat_conjugate(state[..., 3:7]), reference_quat))
+    relative = [
+      quat_apply(rotation, state.new_tensor([1, 0, 0])),
+      quat_apply(rotation, state.new_tensor([0, 1, 0])),
+    ]
+  return torch.cat(
+    (
+      state[..., state_layout(state).q]
+      - default_q
+      + context[..., 1 : 1 + default_q.shape[-1]],
+      state[..., state_layout(state).qd],
+      quat_inverse_apply(state[..., 3:7], state[..., state_layout(state).w]),
+      quat_inverse_apply(state[..., 3:7], gravity),
+      *relative,
+      *([] if anchor_orientation is None else [anchor_orientation]),
+      # Keep previous actions last in every observation layout.
+      previous_action,
+    ),
+    dim=-1,
+  )
+
+
+def add_sensor_noise(
+  observation: Tensor, generator: torch.Generator | None = None, num_joints: int = 29
+) -> Tensor:
+  amplitude = observation.new_tensor(
+    [0.01] * num_joints
+    + [0.5] * num_joints
+    + [0.2] * 3
+    + [0.05] * 3
+    + [0.05] * (observation.shape[-1] - (3 * num_joints + 6))
+    + [0.0] * num_joints
+  )
+  noise = torch.rand(
+    observation.shape,
+    device=observation.device,
+    dtype=observation.dtype,
+    generator=generator,
+  )
+  return observation + (2 * noise - 1) * amplitude
+
+
+class ObservationHistory:
+  def __init__(
+    self, num_envs: int, length: int, device: str, observation_dim: int = 93
+  ):
+    self.data = torch.zeros(num_envs, length, observation_dim, device=device)
+
+  def reset(self, env_ids: Tensor, initial: Tensor) -> None:
+    self.data[env_ids] = initial[:, None, :]
+
+  def append(self, observation: Tensor) -> None:
+    self.data = torch.cat((self.data[:, 1:], observation[:, None]), dim=1)

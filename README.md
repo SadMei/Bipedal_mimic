@@ -1,0 +1,384 @@
+# SuperMimic Mjlab
+
+English | [简体中文](README_zh.md)
+
+## Contents
+
+- [Environment](#environment)
+- [Code structure](#code-structure)
+- [Prepare motion data](#prepare-motion-data)
+- [Online training](#online-training)
+  - [Ablation results and released checkpoint](#ablation-results-and-released-checkpoint)
+  - [Resume training](#resume-training)
+- [Play OOD motions](#play-ood-motions)
+- [Sim2Real](#sim2real)
+- [Training logs and W&B](#training-logs-and-wb)
+- [Detailed guides](#detailed-guides)
+
+<p align="center">
+  <img src="doc/assets/demo_v0.gif" alt="SuperMimic demo">
+</p>
+
+A reproduction of [SuperMimic](doc/supermimic.pdf) for multi-motion tracking on the
+Unitree G1. The current policy collects simulator transitions, a differentiable world model learns from 8-step autoregressive
+windows, and the Actor and Critic train through 32-step imagined rollouts.
+
+The current dataset contains 40 G1-retargeted LAFAN clips, approximately 2.45 hours
+of motion, at a control rate of 50 Hz.
+
+Full-scale training uses a single **NVIDIA RTX A6000 with 48 GB of GPU memory**;
+**15000 iterations take approximately 4 hours** with 4096 environments and FP32
+networks. GPUs with less memory can use fewer environments and smaller batches;
+see the [reduced-workload configuration](doc/training_and_playback_en.md#reduced-training-workload), but performance not verified.
+
+<p align="center">
+  <img src="doc/assets/evaluation.png" alt="Evaluation result">
+</p>
+
+The best model achieves **40/40 successful motions (100%)**, **100% mean
+completion**, and **0.8528 normalized return** in standard fixed-start, full-clip
+evaluation over all 40 LAFAN motions. See [ablation results and released
+checkpoint](#ablation-results-and-released-checkpoint) for configuration comparisons
+and checkpoint usage.
+
+The robot uses the vendored [RoboJuDo-Plus G1 assets](src/assets/robots/g1/README.md),
+loading `g1_29dof_rev_1_0.xml` with collision meshes, shoulder cylinders, and four
+5 mm radius spheres per foot. Training retains the mjlab PD control setup and
+disables self-collisions.
+
+## Environment
+
+From the repository root, create the environment and install the project with uv:
+
+```bash
+uv sync
+source .venv/bin/activate
+```
+
+See the [installation guide](doc/setup_en.md) for dependencies and GPU checks.
+
+## Code structure
+
+Task components are organized by responsibility, with separate packages for
+configuration, data, task functions, models, and training:
+
+```text
+src/tasks/supermimic/
+├── config/
+│   ├── task_cfg.py           # G1 dimensions, motion paths, environment settings
+│   └── rl_cfg.py             # OnlineConfig: workload, networks, optimizer settings
+├── data/
+│   ├── motion_library.py     # NPZ motions, reference frames, future windows
+│   ├── replay_buffer.py      # Episode-aware replay and history reconstruction
+│   └── world_model_data.py   # Offline splits, deduplication, ReplayCorpus
+├── mdp/
+│   ├── state.py              # State layout, quaternion math, observations, noise
+│   ├── rewards.py            # Differentiable tracking rewards
+│   ├── terminations.py       # Physical failure criteria
+│   └── reset_sampler.py      # Return-based reset sampling
+├── models/
+│   ├── kinematics.py         # Differentiable G1 kinematics and robot metadata
+│   ├── world_model.py        # Dynamics and task prediction heads
+│   └── policy.py             # MotionActor, MotionCritic, reference features
+├── rl/
+│   ├── imagination.py        # BPTT, soft survival, GAE, Critic loss
+│   ├── online_training.py    # Collection, model fitting, Actor-Critic updates
+│   ├── training_logger.py    # Terminal tables and W&B tracking
+│   ├── checkpoints.py        # Full training snapshots and actor-only exports
+│   ├── world_model_training.py # Standalone model training and validation
+│   └── evaluation.py         # Fixed-start, full-clip simulator evaluation
+├── env.py                    # SuperMimicEnv simulator interface
+└── env_cfg.py                # mjlab scene, PD actions, domain randomization
+```
+
+Package initializers remain lightweight. Regression tests live in `tests/`.
+Scripts are organized by purpose and frequency of use:
+
+```text
+scripts/
+├── train_supermimic.py            # Online joint training
+├── evaluate_supermimic.py         # Checkpoint policy evaluation
+├── play_supermimic.py             # Live MuJoCo policy/reference comparison
+├── export_supermimic_policy.py    # Extract policy or world-model weights
+├── data/
+│   └── convert_lafan_to_npz.py     # LAFAN CSV-to-NPZ conversion
+└── offline/
+    ├── collect_supermimic.py      # Replay collection or kinematic replay checks
+    └── train_world_model.py       # Standalone model training and validation
+```
+
+Use the root scripts for routine online training, evaluation, and playback.
+The `offline/` scripts support diagnostics and offline experiments; online training
+can start directly without running them.
+
+## Prepare motion data
+
+G1 29DoF and 23DoF share the same workflow. Select the robot with `--robot`
+(default: `g1_29dof`) and use matching retargeted motion data. The example below
+uses CSV files in `src/assets/motions/LAFAN1_Retargeting_Dataset/`; set `--input-dir`
+for a different retargeted dataset:
+
+```bash
+python scripts/data/convert_lafan_to_npz.py --robot g1_29dof \
+  --input-dir src/assets/motions/LAFAN1_Retargeting_Dataset \
+  --output-dir src/assets/motions/g1/lafan1_npz \
+  --input-fps 30 --output-fps 50
+```
+
+This writes one NPZ per clip and a `manifest.json`. Proceed to training after
+conversion; if these files already exist, this step can be skipped. See the
+[LAFAN conversion guide (Chinese)](doc/lafan_conversion_zh.md) for fields and coordinate conventions.
+
+For 23DoF, use `--robot g1_23dof` and change `--output-dir` to
+`src/assets/motions/g1/lafan1_npz_23dof`. Keep the two robots' converted data separate.
+Training selects the corresponding default manifest; evaluation and playback take
+`--motion` or `--motion-dir` pointing to the matching NPZ data.
+
+BSRL 12DoF uses the same 40-clip LAFAN1 selection, but the motions must be
+retargeted through GMR instead of reusing G1 joint angles:
+
+```bash
+python scripts/data/retarget_lafan_to_bsrl.py --overwrite \
+  --gmr-dir /root/mjw/GMR \
+  --source-dir /root/mjw/GMR/motion_data/LAFAN1_source/lafan1
+```
+
+The default output is `src/assets/motions/bsrl/lafan1_npz/`; reusable GMR caches
+are stored beside it. BSRL runs 200 Hz physics/PD and a 50 Hz policy and mirrors
+the Bipedal_AMP BSRL mass, inertia, COM, PD, armature, joint-friction, sliding-
+friction, actuator-delay, and periodic-push randomizations. MuJoCo has no direct
+PhysX static/dynamic-friction and restitution equivalent, so the material event
+matches the 0.5–1.5 sliding-friction range.
+
+## Online training
+
+Use the same training command for all robots, selecting `--robot g1_29dof`,
+`--robot g1_23dof`, or `--robot bsrl_12dof`. Compact references are the default;
+full-body references use `--reference-dim 2680` for 29DoF, `--reference-dim 2560`
+for 23DoF, and `--reference-dim 1290` for BSRL (whose compact width is 390).
+Resume, evaluation and playback infer the robot from the checkpoint. Weights and
+motion data must match that robot; the released weights and ablation results below
+use 29DoF. The same `--robot` selection applies to velocity and offline training.
+
+`motion_anchor_ori_b` is an optional ablation, disabled by default; enable it with
+`--motion-anchor-ori-b` in the training command.
+
+### Ablation results and released checkpoint
+
+The ablation uses the `full_body_268` reference, FP32 networks, 4096 environments,
+and a complete deterministic evaluation over all 40 LAFAN motions. The table reports
+the mean at iteration 15000 across the completed reruns available for each setting:
+
+| Setting | Successful motions | Normalized return |
+| --- | ---: | ---: |
+| Actor/Critic input normalization | 38–40/40 | 0.6016 |
+| + torso-frame motion orientation anchor | 38–40/40 | 0.8130 |
+| + world-model normalization | 40/40 | 0.8504 |
+| + corrected 15000-step cosine LR schedule | **40/40** | **0.8526** |
+
+The orientation anchor produces the largest policy improvement, while world-model
+normalization is essential for stable training. Gains are concentrated in walking
+clips, with trade-offs on some get-up, jump, and run clips.
+
+| File | Contents |
+| --- | --- |
+| `checkpoints/best/policy_best.pt` | Best Actor weights for real-physics playback; iteration 15000 |
+| `checkpoints/best/world_model_best.pt` | Matching world model for prediction overlays |
+
+The selected policy achieved **40/40 successful motions**, **1.0 mean completion**,
+and **0.8528 normalized return** in the full standard evaluation.
+
+Training uses a single **NVIDIA RTX A6000 with 48 GB of GPU memory**. With the
+4096-environment FP32 configuration below, **15000 training iterations take
+approximately 4 hours**.
+
+Run the selected training configuration from the repository root:
+
+```bash
+python scripts/train_supermimic.py \
+  --robot g1_29dof \
+  --device cuda:0 \
+  --reference-dim 2680 \
+  --world-prediction state_delta \
+  --actor-input-normalization --critic-input-normalization \
+  --world-model-normalization --motion-anchor-ori-b \
+  --amp none --no-compile \
+  --seed 0 \
+  --num-envs 4096 --capacity 1000 \
+  --warmup-steps 32 --wm-only-iters 0 \
+  --collect-steps 5 --updates-per-collect 2 \
+  --wm-batches 10 --wm-batch-size 2048 \
+  --policy-batch-size 4096 --horizon 32 \
+  --critic-epochs 5 --critic-minibatches 4 \
+  --learning-rate 2e-4 \
+  --world-dims 2048 2048 2048 \
+  --actor-dims 2048 1024 512 256 \
+  --critic-dims 256 128 \
+  --iterations 15000 \
+  --eval-interval 1000 --checkpoint-interval 1000 \
+  --output outputs/supermimic/run
+```
+
+The trainer writes a paired `policy_best.pt` and `world_model_best.pt`, selected by
+successful motion count first and normalized return second.
+
+Play selected motions in real physics:
+
+```bash
+python scripts/play_supermimic.py \
+  --device cuda:0 --checkpoint checkpoints/best/policy_best.pt \
+  --clips walk1_subject1 run1_subject2 --loop \
+  --motion-dir src/assets/motions/g1/lafan1_npz
+```
+
+Add the matching world model to preview the policy 32 control steps (0.64 s) ahead:
+
+```bash
+python scripts/play_supermimic.py \
+  --device cuda:0 --checkpoint checkpoints/best/policy_best.pt \
+  --world-model checkpoints/best/world_model_best.pt \
+  --world-model-mode future --world-model-horizon 32 \
+  --clips walk1_subject1 run1_subject2 --loop \
+  --motion-dir src/assets/motions/g1/lafan1_npz
+```
+
+Omit `--clips` to play all 40 motions. Playback defaults to allowing mouse forces
+and continuing after height/tilt failures; add `--no-perturbations --termination`
+for playback with failure resets. For standard headless evaluation of all motions:
+
+```bash
+python scripts/evaluate_supermimic.py \
+  --device cuda:0 --checkpoint checkpoints/best/policy_best.pt \
+  --output outputs/supermimic/evaluation_best.json \
+  --motion-dir src/assets/motions/g1/lafan1_npz
+```
+
+Domain randomization, observation noise, and return-based reset sampling are enabled
+by default. All motions are used unless `--clips` is specified; for debugging, use
+`--clips walk1_subject1 run1_subject2`.
+
+Evaluation and playback require exactly one explicit motion source:
+`--motion /path/to/clip.npz`, `--motion-dir /path/to/motions`, or
+`--manifest /path/to/manifest.json`. File and directory modes need no manifest;
+directories are scanned recursively in relative-path order. Without `--clips`,
+all supplied motions are selected, including motions absent from training.
+Model and data SHA values are optional
+provenance metadata and never block loading. Network dimensions, robot joint/body
+ordering and topology, motion formats, and simulation settings are still checked.
+Online resume retains the original clip order for replay and sampler state.
+
+Robot self-collisions are disabled while full-body ground contacts remain enabled.
+Training resets perturb the reference pose, root velocities and joint positions.
+Foot friction and torso CoM are sampled once at startup; encoder bias is resampled
+on each episode reset. Evaluation disables reset noise and domain randomization.
+See the [environment configuration](doc/supermimic_foundation_zh.md) for ranges.
+Training variants, optional RunningNorm, checkpoint formats and viewer controls are
+in the [operational guide](doc/training_and_playback_en.md).
+
+### Resume training
+
+Network and batch settings are restored from the checkpoint. `--iterations` specifies
+the total number of iterations, including those already completed:
+
+```bash
+python scripts/train_supermimic.py \
+  --robot g1_29dof \
+  --device cuda:0 --resume outputs/supermimic/run/last.pt \
+  --iterations 32000
+```
+
+
+## Play OOD motions
+
+<p align="center">
+  <img src="src/assets/motions/examples/C5_-_walk_to_run_stageii.gif" alt="OOD motion playback: walk to run" width="48%" />
+  <img src="src/assets/motions/examples/dance_video.gif" alt="OOD motion playback: dance from video" width="48%" />
+</p>
+
+<p align="center">Left: an example from the ACCAD dataset. Right: an example of motion data generated from a video.</p>
+
+You can also refer [video2motion](https://github.com/Breezewrf/video2motion) to export
+SuperMimic-compatible motion data from videos, Kimodo, GMR motions, or the ACCAD
+dataset. See that repository for conversion instructions, then play the exported
+NPZ with a checkpoint for the matching robot:
+
+```bash
+python scripts/play_supermimic.py \
+  --checkpoint checkpoints/best/policy_best.pt \
+  --motion src/assets/motions/examples/C5_-_walk_to_run_stageii.npz \
+  --loop
+```
+Replace `--loop` with `--viewer none --video output/walk.mp4` can record the mujoco player into video.
+
+## Sim2Real
+
+SuperMimic sim2real transfer is complete and deployed in the
+[RoboJuDo-Plus `supermimic` branch](https://github.com/chifongip/RoboJuDo-Plus/tree/supermimic).
+See its [SuperMimic deployment guide](https://github.com/chifongip/RoboJuDo-Plus/blob/supermimic/docs/supermimic.md)
+for motion tracking, velocity control, loco/mimic switching, checkpoint and motion
+configuration, and real-robot operation. The guide includes 23DoF real-robot
+configurations for SuperMimic velocity + motion tracking and Maniloco + SuperMimic.
+
+**Safety precautions:**
+
+1. Physical robots differ in condition and behavior; we cannot guarantee that the
+   policy will run stably on your hardware.
+2. Our real-robot deployment uses **G1 23DoF, not 29DoF**.
+3. For initial sim2real tests, use small-amplitude mimic motions together with a
+   stable locomotion policy. **Current my implmented SuperMimic velocity tracking is still in development stage.**
+4. RoboJuDo-Plus supports convenient mode switching with the Unitree joystick.
+   When urgent intervention is needed, press **Y** to return to the default pose,
+   **B** to enter damping mode, or **A** to enter zero-torque (passive) mode.
+   Familiarize yourself with these controls to help protect the robot and test personnel.
+
+## Training logs and W&B
+
+The terminal separates Reward (higher), Error (lower), Loss (lower), imagined
+Objective (higher), Failure, and Performance. Rewards are weighted contributions
+per control step; physical errors show their units. Values are averaged between
+reports; failure percentages count events per collected transition. Throughput
+includes collection and optimization time; GPU memory is PyTorch peak allocation
+in GiB. Simulator initialization tables, kernel messages, and repeated
+seed messages are saved to `simulator.log`. Exceptions remain visible on stderr.
+
+Use `--log-interval 50` to print less often, `--verbose-sim` to show simulator
+messages, or `--log-format json` for the previous terminal JSON format.
+`metrics.jsonl` stores every iteration, retaining raw fields and adding classified
+`metric_groups`. W&B also provides `reward/`, `error/`, `loss/`, and `objective/`
+groups; legacy names remain available.
+Rich formatting is used when `rich` is installed; plain text is available otherwise.
+
+Enable the optional W&B and Rich dependencies, then sign in once:
+
+```bash
+uv sync --extra logging
+wandb login
+```
+
+Enable it for a new run:
+
+```bash
+python scripts/train_supermimic.py \
+  --robot g1_29dof \
+  --device cuda:0 --iterations 1000 \
+  --wandb --wandb-project supermimic --wandb-name g1-lafan \
+  --output outputs/supermimic/online_wandb
+```
+
+When resuming training, pass `--wandb` again. Offline logging and run continuation
+are covered in the [operational guide](doc/training_and_playback_en.md#training-logs-and-wb).
+
+## Detailed guides
+
+- [Installation](doc/setup_en.md)
+- [Training variants, checkpoint formats, evaluation, viewer controls and tests](doc/training_and_playback_en.md) ([中文](doc/training_and_playback_zh.md))
+
+Implementation guides (Chinese):
+
+- [LAFAN data conversion](doc/lafan_conversion_zh.md)
+- [Motion library, collection environment, and replay buffer](doc/supermimic_foundation_zh.md)
+- [Standalone world-model training and validation](doc/supermimic_world_model_zh.md)
+- [Online training and evaluation protocol](doc/supermimic_online_zh.md)
+
+Standalone collection and model training support diagnostics and offline experiments.
+Online training can start directly from scratch.

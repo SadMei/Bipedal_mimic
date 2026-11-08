@@ -1,0 +1,199 @@
+{
+  "seed": 0,
+  "evaluation_num_envs": 1,
+  "termination_enabled": true,
+  "evaluation_mode": "standard",
+  "motions": [
+    {
+      "motion": "dance1_subject1",
+      "steps": 500,
+      "expected_steps": 6573,
+      "completion": 0.0760687661646128,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.83535694330931,
+      "normalized_return": 0.07429690695771991,
+      "mean_errors": {
+        "body_position_error": 0.024973341369070114,
+        "body_orientation_error": 0.0858899759426713,
+        "root_position_error": 0.043330874925479296,
+        "root_orientation_error": 0.025710149796679616
+      }
+    },
+    {
+      "motion": "fallAndGetUp1_subject1",
+      "steps": 500,
+      "expected_steps": 8410,
+      "completion": 0.059453032104637336,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 45.0356683768332,
+      "normalized_return": 0.05355014075723329,
+      "mean_errors": {
+        "body_position_error": 0.047166872094385325,
+        "body_orientation_error": 0.15751281452924012,
+        "root_position_error": 0.05341809658706188,
+        "root_orientation_error": 0.09073580958135426
+      }
+    },
+    {
+      "motion": "jumps1_subject1",
+      "steps": 500,
+      "expected_steps": 12221,
+      "completion": 0.04091318222731364,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 46.84748460352421,
+      "normalized_return": 0.038333593489505116,
+      "mean_errors": {
+        "body_position_error": 0.030823023959994315,
+        "body_orientation_error": 0.10199012089520693,
+        "root_position_error": 0.04185486885206774,
+        "root_orientation_error": 0.04142440456151962
+      }
+    },
+    {
+      "motion": "run1_subject2",
+      "steps": 500,
+      "expected_steps": 11890,
+      "completion": 0.04205214465937763,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.88535486161709,
+      "normalized_return": 0.041114680287314624,
+      "mean_errors": {
+        "body_position_error": 0.022681381482630967,
+        "body_orientation_error": 0.09179465418308973,
+        "root_position_error": 0.018841058871243148,
+        "root_orientation_error": 0.041748734642751514
+      }
+    },
+    {
+      "motion": "walk1_subject1",
+      "steps": 500,
+      "expected_steps": 13065,
+      "completion": 0.038270187523918864,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.96907837316394,
+      "normalized_return": 0.03748111624428928,
+      "mean_errors": {
+        "body_position_error": 0.024006623563356696,
+        "body_orientation_error": 0.08218028747290373,
+        "root_position_error": 0.035774845994077625,
+        "root_orientation_error": 0.03669314154796302
+      }
+    }
+  ],
+  "successes": 0,
+  "success_rate": 0.0,
+  "n_failed": 0,
+  "failed": [],
+  "mean_completion": 0.051351462535972045,
+  "evaluation_complete": false,
+  "normalized_return": 0.04895528754721244,
+  "normalized_return_framew": 0.045739554661409866,
+  "protocol": "first frame; full clip unless explicitly limited; deterministic policy; friction 1.0; no reset/sensor/action noise or domain randomization; self collisions disabled; height/tilt failure termination enabled",
+  "normalization": "per-clip undiscounted reward / (5 * control_dt * (frames - 1)); arithmetic mean over clips; no reward after failure",
+  "policy": "outputs/supermimic/lafan_upstream_30k_gpu3/policy_best.pt",
+  "iteration": 29000,
+  "training_environment_steps": 297091072,
+  "evaluated_at": "2026-11-02T06:46:11.615331+00:00",
+  "evaluation_limit": 500,
+  "reference_schema": "full_body_268",
+  "reference_schema_inferred": false,
+  "mouse_perturbations_enabled": false,
+  "mouse_perturbation_steps": 0,
+  "world_model_comparison": {
+    "checkpoint": "outputs/supermimic/lafan_upstream_30k_gpu3/world_model_best.pt",
+    "iteration": 29000,
+    "mode": "compare",
+    "horizon": 32,
+    "control_dt": 0.02,
+    "actions": "executed simulator actions; not a separate imagined policy",
+    "resync": "clip start and every horizon steps; no intermediate state correction",
+    "external_forces_modeled": false,
+    "motions": [
+      {
+        "motion": "dance1_subject1",
+        "samples": 500,
+        "nonfinite_steps": 0,
+        "mean_errors": {
+          "root_position_m": 0.0022084741493745242,
+          "root_orientation_rad": 0.006902295708452584,
+          "joint_position_rmse_rad": 0.004020608106453437,
+          "body_position_mpjpe_m": 0.0030770684054587036
+        }
+      },
+      {
+        "motion": "fallAndGetUp1_subject1",
+        "samples": 500,
+        "nonfinite_steps": 0,
+        "mean_errors": {
+          "root_position_m": 0.006854672079698503,
+          "root_orientation_rad": 0.018835500377987046,
+          "joint_position_rmse_rad": 0.013283928648685104,
+          "body_position_mpjpe_m": 0.010147334431385388
+        }
+      },
+      {
+        "motion": "jumps1_subject1",
+        "samples": 500,
+        "nonfinite_steps": 0,
+        "mean_errors": {
+          "root_position_m": 0.003554186381836189,
+          "root_orientation_rad": 0.013014946982308175,
+          "joint_position_rmse_rad": 0.0070311457978677935,
+          "body_position_mpjpe_m": 0.005648808663841919
+        }
+      },
+      {
+        "motion": "run1_subject2",
+        "samples": 500,
+        "nonfinite_steps": 0,
+        "mean_errors": {
+          "root_position_m": 0.003474212344699481,
+          "root_orientation_rad": 0.007520514298899798,
+          "joint_position_rmse_rad": 0.00485920046659885,
+          "body_position_mpjpe_m": 0.004417110047244933
+        }
+      },
+      {
+        "motion": "walk1_subject1",
+        "samples": 500,
+        "nonfinite_steps": 0,
+        "mean_errors": {
+          "root_position_m": 0.003313715994161612,
+          "root_orientation_rad": 0.005563462605146924,
+          "joint_position_rmse_rad": 0.004444715153251309,
+          "body_position_mpjpe_m": 0.0037079539335682058
+        }
+      }
+    ]
+  }
+}

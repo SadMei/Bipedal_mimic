@@ -1,0 +1,132 @@
+{
+  "seed": 0,
+  "evaluation_num_envs": 1,
+  "termination_enabled": false,
+  "evaluation_mode": "playback",
+  "motions": [
+    {
+      "motion": "dance1_subject1",
+      "steps": 500,
+      "expected_steps": 6573,
+      "completion": 0.0760687661646128,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.831263065338135,
+      "normalized_return": 0.07429067863279801,
+      "mean_errors": {
+        "body_position_error": 0.02492428653035313,
+        "body_orientation_error": 0.08582417757809162,
+        "root_position_error": 0.04357145055010915,
+        "root_orientation_error": 0.02561843040212989
+      }
+    },
+    {
+      "motion": "fallAndGetUp1_subject1",
+      "steps": 500,
+      "expected_steps": 8410,
+      "completion": 0.059453032104637336,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 45.068166211247444,
+      "normalized_return": 0.053588782653088515,
+      "mean_errors": {
+        "body_position_error": 0.04686741484235972,
+        "body_orientation_error": 0.15739102472364902,
+        "root_position_error": 0.050839155850932,
+        "root_orientation_error": 0.09011992786824703
+      }
+    },
+    {
+      "motion": "jumps1_subject1",
+      "steps": 500,
+      "expected_steps": 12221,
+      "completion": 0.04091318222731364,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 46.93945473432541,
+      "normalized_return": 0.0384088493039239,
+      "mean_errors": {
+        "body_position_error": 0.03026094800233841,
+        "body_orientation_error": 0.10148006071895362,
+        "root_position_error": 0.035371919323224574,
+        "root_orientation_error": 0.04130434242077172
+      }
+    },
+    {
+      "motion": "run1_subject2",
+      "steps": 500,
+      "expected_steps": 11890,
+      "completion": 0.04205214465937763,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.883825086057186,
+      "normalized_return": 0.0411133936804518,
+      "mean_errors": {
+        "body_position_error": 0.02271637705154717,
+        "body_orientation_error": 0.09185842778533697,
+        "root_position_error": 0.01876079892553389,
+        "root_orientation_error": 0.041829135079402474
+      }
+    },
+    {
+      "motion": "walk1_subject1",
+      "steps": 500,
+      "expected_steps": 13065,
+      "completion": 0.038270187523918864,
+      "success": false,
+      "terminated": false,
+      "failure_detected": false,
+      "first_failure_step": null,
+      "detected_failure_reasons": [],
+      "failure_reason": "evaluation_limit",
+      "evaluation_limited": true,
+      "return": 48.97042779251933,
+      "normalized_return": 0.03748214909492486,
+      "mean_errors": {
+        "body_position_error": 0.02400337288249284,
+        "body_orientation_error": 0.0822031555250287,
+        "root_position_error": 0.03553897572029382,
+        "root_orientation_error": 0.03671622536052018
+      }
+    }
+  ],
+  "successes": 0,
+  "success_rate": 0.0,
+  "n_failed": 0,
+  "failed": [],
+  "mean_completion": 0.051351462535972045,
+  "evaluation_complete": false,
+  "normalized_return": 0.04897677067303742,
+  "normalized_return_framew": 0.04576259837985534,
+  "protocol": "first frame; full clip unless explicitly limited; deterministic policy; friction 1.0; no reset/sensor/action noise or domain randomization; self collisions disabled; height/tilt failures diagnostic only; termination disabled for playback",
+  "normalization": "per-clip undiscounted reward / (5 * control_dt * (frames - 1)); arithmetic mean over clips; playback reward continues after failure thresholds",
+  "policy": "outputs/supermimic/lafan_upstream_30k_gpu3/policy_best.pt",
+  "iteration": 29000,
+  "training_environment_steps": 297091072,
+  "evaluated_at": "2026-11-02T06:29:10.265833+00:00",
+  "evaluation_limit": 500,
+  "reference_schema": "full_body_268",
+  "reference_schema_inferred": false,
+  "mouse_perturbations_enabled": false,
+  "mouse_perturbation_steps": 0
+}
