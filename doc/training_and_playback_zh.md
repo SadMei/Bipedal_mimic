@@ -289,15 +289,15 @@ python scripts/play_supermimic.py \
   --motion-dir src/assets/motions/g1/lafan1_npz
 ```
 
-默认 `--world-model-mode future` 会在世界模型内根据预测观测运行策略，橙色机器人
-显示**未来 32 步（0.64 秒）后的预测姿态**，并绘制橙色根部路径。
+默认 `--world-model-mode future` 会在世界模型内根据预测观测运行策略，黄色机器人
+显示**未来 32 步（0.64 秒）后的预测姿态**，并绘制黄色根部路径。
 `--world-model-refresh 4` 表示每 4 个控制步从当前真实状态和观测历史重新预测，
 其间沿缓存轨迹前进，保持固定的未来时间差；参考特征批量编码以减少开销。
 若预览影响流畅度，可增大 refresh。接近动作末尾时提前量缩短，不预测到下一个动作。
 
 `--world-model-mode compare` 保留原来的同时刻动力学误差对照，使用真实动作连续
 预测并每隔 horizon 步同步；在此模式下设 `--world-model-horizon 1` 可检查单步误差。
-`W` 显隐橙色预测，`G` 显隐蓝色参考。预测始终保留绝对位置和朝向。
+`W` 显隐黄色预测，`G` 显隐蓝色参考。预测始终保留绝对位置和朝向。
 未来模式会显示 `FUTURE +0.64s`，等真实仿真到达目标帧后才统计该预测的误差，
 不会将未来姿态与当前姿态直接比较。JSON 的 `world_model_comparison` 记录模式和
 逐动作误差；预测出现 NaN／Inf 时隐藏至下次刷新，不影响真实仿真。

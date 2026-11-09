@@ -339,8 +339,8 @@ python scripts/play_supermimic.py \
 ```
 
 The default `--world-model-mode future` runs the policy on imagined observations
-inside the world model. The orange robot shows the predicted pose **32 steps
-(0.64 s) ahead** of real physics, with an orange root trajectory. The preview is
+inside the world model. The yellow robot shows the predicted pose **32 steps
+(0.64 s) ahead** of real physics, with a yellow root trajectory. The preview is
 recomputed from the current real state/history every `--world-model-refresh 4`
 steps; its cached trajectory advances between refreshes, keeping the same future
 lead. Reference features are encoded in a batch to reduce preview overhead. Increase
@@ -348,7 +348,7 @@ the refresh interval if rendering slows. The lead shortens at the clip end.
 
 Use `--world-model-mode compare` for the original same-time dynamics comparison:
 the model consumes actual actions and resyncs every horizon steps. In this mode,
-`--world-model-horizon 1` measures single-step error. `W` toggles the orange robot;
+`--world-model-horizon 1` measures single-step error. `W` toggles the yellow robot;
 `G` toggles the blue reference. Prediction poses retain absolute position and heading.
 Future mode labels its time lead and compares each displayed forecast only when
 the real rollout reaches the matching target frame; it never scores a future pose

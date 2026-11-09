@@ -1,4 +1,4 @@
-"""Display physics, a blue reference and an optional orange world-model prediction.
+"""Display physics, a blue reference and an optional yellow world-model prediction.
 
 Rendering uses independent CPU MuJoCo buffers. Optional mouse perturbations send
 only generalized forces back to the simulator, following mjlab's native viewer.
@@ -21,6 +21,11 @@ import torch
 from ..config.morphology import state_layout
 from ..mdp.state import quat_conjugate, quat_inverse_apply, quat_mul, yaw_quat
 from .evaluation import EvaluationInterrupted
+
+
+REFERENCE_GHOST_RGBA = (0.25, 0.6, 1.0, 0.3)
+WORLD_MODEL_GHOST_RGBA = (1.0, 0.9, 0.05, 0.55)
+WORLD_MODEL_PATH_RGBA = (1.0, 0.9, 0.05, 0.85)
 
 
 class ViewerClosed(EvaluationInterrupted):
@@ -158,9 +163,9 @@ class EvaluationScene:
 
   def add_ghost(self, scene):
     if self.ghost:
-      self._add_ghost(scene, self.reference_data, (0.25, 0.6, 1.0, 0.3))
+      self._add_ghost(scene, self.reference_data, REFERENCE_GHOST_RGBA)
     if self.prediction_ready and self.show_world_model:
-      self._add_ghost(scene, self.prediction_data, (1.0, 0.55, 0.1, 0.5))
+      self._add_ghost(scene, self.prediction_data, WORLD_MODEL_GHOST_RGBA)
       if self.prediction_path is not None:
         path = self.prediction_path[:: max(1, len(self.prediction_path) // 16)]
         if not np.array_equal(path[-1], self.prediction_path[-1]):
@@ -175,7 +180,7 @@ class EvaluationScene:
             np.zeros(3),
             np.zeros(3),
             np.eye(3).ravel(),
-            np.array([1.0, 0.55, 0.1, 0.8], dtype=np.float32),
+            np.array(WORLD_MODEL_PATH_RGBA, dtype=np.float32),
           )
           mujoco.mjv_connector(geom, mujoco.mjtGeom.mjGEOM_LINE, 2.0, start, end)
           geom.category = mujoco.mjtCatBit.mjCAT_DECOR
@@ -351,7 +356,7 @@ class LiveViewer:
             mujoco.mjtFontScale.mjFONTSCALE_150.value,
             mujoco.mjtGridPos.mjGRID_TOPLEFT.value,
             "Motion\nTime\nReturn so far\nState\nControls\nMouse forces"
-            + ("\nWorld model (orange)" if self.world_model is not None else ""),
+            + ("\nWorld model (yellow)" if self.world_model is not None else ""),
             (
               f"{env.library.names[clip]}\n{frame * env.step_dt:.2f}s\n"
               f"{reward_sum / (5 * env.step_dt * (int(env.library.lengths[clip]) - 1)):.3f}\n"

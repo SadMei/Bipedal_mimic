@@ -131,7 +131,7 @@ class WorldModelPlaybackTests(unittest.TestCase):
     self.assertFalse(viewer.scene.show_world_model)
     self.assertEqual(observer.age, 0)
 
-  def test_orange_prediction_uses_absolute_pose_and_independent_render_buffers(self):
+  def test_yellow_prediction_uses_absolute_pose_and_independent_render_buffers(self):
     joints = "".join(
       f'<body pos="0 0 {i * 0.02}"><joint name="j{i}"/><geom size=".01"/></body>'
       for i in range(29)
@@ -174,7 +174,7 @@ class WorldModelPlaybackTests(unittest.TestCase):
     scene.add_ghost(rendered)
     self.assertGreater(rendered.ngeom, 0)
     for geom in rendered.geoms[: rendered.ngeom]:
-      np.testing.assert_allclose(geom.rgba, [1, 0.55, 0.1, 0.5], atol=1e-6)
+      np.testing.assert_allclose(geom.rgba, [1, 0.9, 0.05, 0.55], atol=1e-6)
     np.testing.assert_array_equal(data.qpos, original)
     scene.show_world_model = False
     rendered.ngeom = 0

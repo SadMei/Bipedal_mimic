@@ -279,7 +279,7 @@ def main(*, playback=False):
         )
         if comparison is not None:
           print(
-            "Orange ghost = world-model prediction; W: toggle prediction.",
+            "Yellow ghost = world-model prediction; W: toggle prediction.",
             flush=True,
           )
         if perturbations:
