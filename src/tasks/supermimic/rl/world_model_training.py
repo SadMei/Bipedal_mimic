@@ -13,10 +13,18 @@ from ..models.world_model import (
 )
 
 
-def rollout_states(model, state, actions, contexts, mask):
+def rollout_states(model, state, actions, contexts, mask, history=None):
   states = []
   for step in range(mask.shape[1]):
-    predicted = model(state, actions[:, step], contexts[:, step])
+    if model.recurrent:
+      if history is None:
+        raise ValueError("GRU rollout requires world history")
+      predicted, updated = model.step(
+        state, actions[:, step], contexts[:, step], history
+      )
+      history = torch.where(mask[:, step, None, None], updated, history)
+    else:
+      predicted = model(state, actions[:, step], contexts[:, step])
     state = torch.where(mask[:, step, None], predicted, state)
     states.append(state)
   return torch.stack(states, 1)
@@ -33,9 +41,11 @@ def rollout(
 ) -> dict[str, Tensor]:
   reference = library.get_frame(batch["motion_id"], batch["frame_id"] + 1)
   if baseline_prior is None:
-    states = (dynamics or (lambda *args: rollout_states(model, *args)))(
-      batch["state"][:, 0], batch["action"], batch["context"], batch["mask"]
-    )
+    args = (batch["state"][:, 0], batch["action"], batch["context"], batch["mask"])
+    if model.recurrent:
+      states = rollout_states(model, *args, history=model.history_from_batch(batch))
+    else:
+      states = (dynamics or (lambda *args: rollout_states(model, *args)))(*args)
   else:
     state = batch["state"][:, 0]
     states = []

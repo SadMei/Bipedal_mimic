@@ -12,6 +12,7 @@ dynamic = ["version", "dependencies"]
 
 [project.optional-dependencies]
 logging = ["rich", "wandb"]
+comparison = ["onnx>=1.17", "onnxruntime>=1.20", "pillow>=10"]
 
 [tool.setuptools.packages.find]
 include = ["src", "src.*"]

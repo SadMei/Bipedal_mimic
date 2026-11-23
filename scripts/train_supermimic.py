@@ -110,6 +110,9 @@ def main():
   add_logging_arguments(parser)
   parser.add_argument("--termination-mode", choices=("learned", "analytic"))
   parser.add_argument("--amp", choices=("bf16", "none"))
+  parser.add_argument("--world-model-type", choices=("mlp", "gru"))
+  for name in ("world-history-length", "world-gru-hidden-size", "world-gru-layers"):
+    parser.add_argument("--" + name, type=int)
   parser.add_argument(
     "--world-model-normalization",
     action=argparse.BooleanOptionalAction,
@@ -340,6 +343,12 @@ def main():
       asdict(config), args.device, len(env.library), output, trainer.iteration
     )
     console.message(f"World-model prediction: {config.world_prediction}")
+    if config.world_model_type == "gru":
+      console.message(
+        f"World model: GRU {config.world_gru_layers} x {config.world_gru_hidden_size} | "
+        f"{config.world_history_length}-step sliding context | head {config.world_dims} | "
+        "differentiable autoregressive rollout"
+      )
     if config.world_model_normalization:
       console.message(
         "World model: SiLU + LayerNorm | running input/output statistics from real collection"

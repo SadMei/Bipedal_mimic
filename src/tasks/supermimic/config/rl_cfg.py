@@ -41,9 +41,24 @@ class OnlineConfig:
   critic_input_normalization: bool = False
   world_prediction: str = "state_delta"
   world_model_normalization: bool = False
+  world_model_type: str = "mlp"
+  world_history_length: int = 32
+  world_gru_hidden_size: int = 256
+  world_gru_layers: int = 2
   robot: str = "g1_29dof"
 
   def __post_init__(self):
+    if self.world_model_type not in ("mlp", "gru"):
+      raise ValueError("world_model_type must be mlp or gru")
+    if min(
+      self.world_history_length, self.world_gru_hidden_size, self.world_gru_layers
+    ) < 1:
+      raise ValueError("World history and GRU sizes must be positive")
+    if self.world_model_type == "gru":
+      if self.compile:
+        raise ValueError("GRU currently requires --no-compile")
+      if self.capacity < self.world_history_length + 7:
+        raise ValueError("GRU replay capacity must retain history plus eight-step targets")
     if self.world_prediction not in ("state_delta", "velocity_residual"):
       raise ValueError("world_prediction must be state_delta or velocity_residual")
     layout = robot_layout(self.robot)

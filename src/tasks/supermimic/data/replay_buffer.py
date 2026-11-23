@@ -150,26 +150,43 @@ class ReplayBuffer:
     )
     return torch.cat((*selected, choices[indices]))
 
-  def window_indices(self, length: int = 8, require_full: bool = False) -> Tensor:
+  def window_indices(
+    self, length: int = 8, require_full: bool = False, *, world_history_length: int = 0
+  ) -> Tensor:
     """Return retained logical (step, env) starts, stable for an immutable snapshot."""
     if length < 1 or length > self.capacity:
       raise ValueError("Invalid window length")
     starts, envs = self._candidates()
     valid = self._valid_windows(starts, envs, length, require_full)
+    if world_history_length:
+      valid &= self._history_indices(starts, envs, world_history_length)[1]
     return torch.stack((starts[valid], envs[valid]), dim=-1)
 
   def sample_windows(
-    self, batch_size: int, length: int = 8, *, require_full: bool = False
+    self,
+    batch_size: int,
+    length: int = 8,
+    *,
+    require_full: bool = False,
+    world_history_length: int = 0,
   ) -> dict[str, Tensor]:
     if batch_size < 1 or not 1 <= length <= self.capacity:
       raise ValueError("Invalid batch size")
-    indices = self._sample_indices(
-      batch_size,
-      lambda starts, envs: self._valid_windows(starts, envs, length, require_full),
-    )
-    return self.gather_windows(indices, length)
 
-  def gather_windows(self, indices: Tensor, length: int = 8) -> dict[str, Tensor]:
+    def valid(starts, envs):
+      eligible = self._valid_windows(starts, envs, length, require_full)
+      if world_history_length:
+        eligible &= self._history_indices(starts, envs, world_history_length)[1]
+      return eligible
+
+    indices = self._sample_indices(batch_size, valid)
+    return self.gather_windows(
+      indices, length, world_history_length=world_history_length
+    )
+
+  def gather_windows(
+    self, indices: Tensor, length: int = 8, *, world_history_length: int = 0
+  ) -> dict[str, Tensor]:
     if (
       length < 1
       or length > self.capacity
@@ -209,6 +226,8 @@ class ReplayBuffer:
       sampled = value[slots, env]
       expanded = mask.reshape(*mask.shape, *([1] * (sampled.ndim - 2)))
       result[name] = torch.where(expanded, sampled, torch.zeros_like(sampled))
+    if world_history_length:
+      result.update(self._world_history(starts, envs, world_history_length))
     return result | {"mask": mask}
 
   def sample_starts(
@@ -218,6 +237,7 @@ class ReplayBuffer:
     *,
     horizon: int | None = None,
     clip_lengths: Tensor | None = None,
+    world_history_length: int = 0,
   ) -> dict[str, Tensor]:
     """Sample histories, optionally requiring H remaining reference transitions.
 
@@ -235,6 +255,8 @@ class ReplayBuffer:
 
     def valid(starts, envs):
       eligible = self._history_indices(starts, envs, history_length)[1]
+      if world_history_length:
+        eligible &= self._history_indices(starts, envs, world_history_length)[1]
       if horizon is not None:
         slots = starts % self.capacity
         motion = self.data["motion_id"][slots, envs]
@@ -251,9 +273,30 @@ class ReplayBuffer:
       result["history" if key == "observation" else "clean_history"] = self.data[key][
         history_slots, envs[:, None]
       ].clone()
+    if world_history_length:
+      result.update(self._world_history(starts, envs, world_history_length))
+    return result
+
+  def _world_history(self, starts: Tensor, envs: Tensor, length: int):
+    """Past transitions only: t-H+1..t-1, with zero padding at true resets.
+
+    Overwritten history is rejected, never treated as an episode start. The
+    logged action at t is excluded so imagined policy actions cannot leak.
+    """
+    slots, valid = self._history_indices(starts, envs, length)
+    if not valid.all():
+      raise ValueError("World history is no longer retained or crosses an episode")
+    age = self.data["episode_step"][starts % self.capacity, envs]
+    mask = torch.arange(length - 1, 0, -1, device=self.device)[None] <= age[:, None]
+    result = {"world_history_mask": mask}
+    for name in ("state", "action", "context"):
+      values = self.data[name][slots[:, :-1], envs[:, None]]
+      result["world_history_" + name] = torch.where(mask[..., None], values, 0.0)
     return result
 
   def _history_indices(self, starts: Tensor, envs: Tensor, history_length: int):
+    if not 1 <= history_length <= self.capacity:
+      raise ValueError("History length must fit replay capacity")
     slots = starts % self.capacity
     episode = self.data["episode_id"][slots, envs]
     episode_start = starts - self.data["episode_step"][slots, envs]

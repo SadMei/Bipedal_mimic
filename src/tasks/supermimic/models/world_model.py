@@ -1,5 +1,6 @@
 """SE(2)-equivariant state-increment dynamics and analytical task heads."""
 
+from contextlib import nullcontext
 from itertools import pairwise
 
 import torch
@@ -175,11 +176,22 @@ class WorldModel(nn.Module):
     world_prediction: str = "state_delta",
     world_model_normalization: bool = False,
     motion_anchor_ori_b: bool = False,
+    world_model_type: str = "mlp",
+    world_history_length: int = 32,
+    world_gru_hidden_size: int = 256,
+    world_gru_layers: int = 2,
   ):
     super().__init__()
     if not hidden_dims or any(width < 1 for width in hidden_dims):
       raise ValueError("Hidden widths must be positive")
     self.hidden_dims = tuple(hidden_dims)
+    if world_model_type not in ("mlp", "gru"):
+      raise ValueError("world_model_type must be mlp or gru")
+    if min(world_history_length, world_gru_hidden_size, world_gru_layers) < 1:
+      raise ValueError("World history and GRU sizes must be positive")
+    self.world_model_type = world_model_type
+    self.recurrent = world_model_type == "gru"
+    self.history_length = world_history_length if self.recurrent else 0
     if world_prediction not in WORLD_PREDICTIONS:
       raise ValueError(f"world_prediction must be one of {WORLD_PREDICTIONS}")
     self.world_prediction = world_prediction
@@ -193,7 +205,21 @@ class WorldModel(nn.Module):
     self.kinematics = G1Kinematics(metadata)
     layout = self.kinematics.layout
     input_dim, output_dim = 4 * layout.num_joints + 14, layout.state_dim - 1
-    widths = (input_dim, *hidden_dims, output_dim)
+    if self.recurrent:
+      # Each prediction encodes a sliding window from zero hidden state. No
+      # cached, stale hidden states from older model versions enter replay.
+      self.gru = nn.GRU(
+        input_dim,
+        world_gru_hidden_size,
+        world_gru_layers,
+        batch_first=True,
+        dropout=0.0,
+      )
+    widths = (
+      world_gru_hidden_size if self.recurrent else input_dim,
+      *hidden_dims,
+      output_dim,
+    )
     layers = []
     for index, (left, right) in enumerate(pairwise(widths)):
       layers.append(nn.Linear(left, right))
@@ -256,7 +282,70 @@ class WorldModel(nn.Module):
     )
     self.correction_scale.copy_(targets.std(0, unbiased=False).maximum(floor))
 
+  def normalize_features(self, features: Tensor) -> Tensor:
+    if self.world_model_normalization:
+      return self.in_norm(features)
+    return (features - self.input_mean) / self.input_std
+
+  def empty_history(self, state: Tensor) -> Tensor:
+    """Normalized zero tokens before an episode starts; current step excluded."""
+    return state.new_zeros((len(state), self.history_length - 1, len(self.input_mean)))
+
+  def history_from_batch(self, batch: dict[str, Tensor]) -> Tensor | None:
+    if not self.recurrent:
+      return None
+    names = ("state", "action", "context", "mask")
+    if any("world_history_" + name not in batch for name in names):
+      raise ValueError("GRU prediction requires replay world_history fields")
+    features = self.normalize_features(
+      self.features(*(batch["world_history_" + name] for name in names[:3]))
+    )
+    # Mask AFTER normalization: padding must not acquire the data mean/bias.
+    return torch.where(batch["world_history_mask"][..., None], features, 0.0)
+
+  def append_history(
+    self, history: Tensor, state: Tensor, action: Tensor, context: Tensor
+  ) -> Tensor:
+    features = self.normalize_features(self.features(state, action, context))
+    return torch.cat((history, features[:, None]), dim=1)[:, 1:]
+
+  def step(self, state: Tensor, action: Tensor, context: Tensor, history: Tensor):
+    """Predict and shift the context without detaching imagined states/actions."""
+    if not self.recurrent:
+      raise ValueError("History-aware step is only available for GRU models")
+    expected = (len(state), self.history_length - 1, len(self.input_mean))
+    if history.shape != expected:
+      raise ValueError(f"Expected world history {expected}, got {tuple(history.shape)}")
+    features = self.normalize_features(self.features(state, action, context))
+    window = torch.cat((history, features[:, None]), dim=1)
+    # cuDNN inference RNNs cannot backpropagate inputs. Normal training uses
+    # the fast training kernel; explicitly differentiating an eval() model
+    # uses the native kernel instead. Dropout is zero in both modes.
+    backend = (
+      torch.backends.cudnn.flags(enabled=False)
+      if window.is_cuda and torch.is_grad_enabled() and not self.gru.training
+      else nullcontext()
+    )
+    with backend:
+      encoded, _ = self.gru(window)
+    delta = run_mlp(self.dynamics, encoded[:, -1], self.amp)
+    delta = (
+      self.out_norm.denormalize(delta)
+      if self.world_model_normalization
+      else delta * self.correction_scale
+    )
+    predicted = (
+      apply_state_delta(state, delta)
+      if self.world_prediction == "state_delta"
+      else integrate(state, delta)
+    )
+    return predicted, window[:, 1:]
+
   def forward(self, state: Tensor, action: Tensor, context: Tensor) -> Tensor:
+    if self.recurrent:
+      raise ValueError(
+        "GRU requires explicit history; use step(state, action, context, history)"
+      )
     features = self.features(state, action, context)
     if self.world_model_normalization:
       features = self.in_norm(features)

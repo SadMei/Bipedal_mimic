@@ -222,6 +222,29 @@ python scripts/train_supermimic.py \
 The trainer writes a paired `policy_best.pt` and `world_model_best.pt`, selected by
 successful motion count first and normalized return second.
 
+For an experimental recurrent world model, add
+`--world-model-type gru --world-history-length 32 --world-gru-hidden-size 256
+--world-gru-layers 2 --world-dims 128 --no-compile` and use a **new output directory**.
+The GRU encodes a sliding window of state/action/context features (31 past
+transitions plus the current state/action). `--world-dims` sets its prediction
+head widths. Eight-step supervised rollouts and 32-step actor rollouts remain
+autoregressive and differentiable; actor updates freeze world-model weights,
+without detaching imagined states or actions. Episode starts use masked zero
+padding, and replay rejects overwritten history. This is a deterministic
+history-based experiment, not a full RWM implementation; performance is not yet
+established. MLP remains the default, including for older checkpoints.
+
+With the local `.venv` installed, `source env.sh` activates it with direct
+network access; `./run_lafan.sh train bsrl --iterations 30000 --output outputs/bsrl_run`
+provides the common launcher settings (`g1`, `evaluate`, and `play` are also supported).
+
+For a synchronized GRU/MLP ONNX comparison, install `.[comparison]`, FFmpeg,
+and DejaVu fonts, then run `scripts/compare_supermimic_onnx.py --left-run outputs/gru_run
+--right-run outputs/mlp_run --iteration 1000 --output videos/bsrl_gru_vs_mlp_1000`.
+Both runs must contain policy/world-model checkpoints from the requested iteration.
+All videos, ONNX exports and reports share the output folder. Each panel stops on
+its first physical failure and holds the final frame with a failure annotation.
+
 Play selected motions in real physics:
 
 ```bash

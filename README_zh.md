@@ -145,6 +145,33 @@ python scripts/data/retarget_lafan_to_bsrl.py --overwrite \
 
 ## 在线训练
 
+已安装仓库 `.venv` 后，可以使用 `source env.sh` 激活环境并使用直连网络；
+`./run_lafan.sh train bsrl --iterations 30000 --output outputs/bsrl_run`
+提供常用启动参数，也支持 `g1`、`evaluate` 和 `play` 子命令。
+动作数据仍按上述步骤转换到对应机器人的 `lafan1_npz` 目录。
+
+可选 GRU 世界模型实验：在训练命令中增加
+`--world-model-type gru --world-history-length 32 --world-gru-hidden-size 256 --world-gru-layers 2 --world-dims 128 --no-compile`，
+并使用新的输出目录。GRU 读取 31 步历史状态、动作和环境参数，加上当前步输入；
+`--world-dims` 此时指定 GRU 后预测头的宽度。世界模型仍做 8 步自回归监督训练，
+Actor 仍通过 32 步想象 rollout 求梯度。冻结世界模型参数时，预测状态和动作不会 detach。
+回合起点按掩码补零，已被环形缓存覆盖的历史不会参与采样。
+该确定性历史模型仅借鉴 RWM 的思路，效果有待实际评估；默认 MLP 和旧检查点加载方式保留。
+
+同轮次 GRU/MLP 对比录制可使用 `scripts/compare_supermimic_onnx.py`。
+额外安装 `python -m pip install -e '.[comparison]'`，系统需有 FFmpeg 和 DejaVu 字体。
+以下命令导出并校验两套 ONNX Actor，再将实际仿真、参考动作与透明橙色世界模型预测录为左右对比视频：
+
+```bash
+MUJOCO_GL=egl python scripts/compare_supermimic_onnx.py \
+  --left-run outputs/gru_run --right-run outputs/mlp_run \
+  --iteration 1000 --clip walk1_subject1 --seconds 40 \
+  --output videos/bsrl_gru_vs_mlp_1000
+```
+
+左侧必须为 GRU，右侧为 MLP；两个目录需有对应轮次的 policy 和 world_model 权重。
+每侧首次跌倒后冻结最后一帧并标注失败时间。视频、ONNX、误差报告直接放在同一个实验目录。
+
 三种机器人使用相同训练命令，通过 `--robot g1_29dof`、`--robot g1_23dof` 或
 `--robot bsrl_12dof` 选择。
 默认使用紧凑参考；全身参考在 29DoF 下使用 `--reference-dim 2680`，23DoF 下使用

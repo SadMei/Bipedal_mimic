@@ -192,6 +192,10 @@ class OnlineTrainer:
       world_prediction=config.world_prediction,
       world_model_normalization=config.world_model_normalization,
       motion_anchor_ori_b=config.motion_anchor_ori_b,
+      world_model_type=config.world_model_type,
+      world_history_length=config.world_history_length,
+      world_gru_hidden_size=config.world_gru_hidden_size,
+      world_gru_layers=config.world_gru_layers,
     ).to(self.device)
     self.actor = MotionActor(
       metadata["default_q"],
@@ -316,7 +320,9 @@ class OnlineTrainer:
     if self.initialized:
       raise ValueError("Trainer already initialized")
     self.collect(self.config.warmup_steps)
-    if not len(self.replay.window_indices(8)):
+    if not len(
+      self.replay.window_indices(8, world_history_length=self.world.history_length)
+    ):
       raise ValueError("Warmup produced no eight-step windows")
     if not self.config.world_model_normalization:
       count = min(self.replay.steps, self.replay.capacity)
@@ -332,7 +338,9 @@ class OnlineTrainer:
     totals, counts = {}, {}
     self.world.train()
     for index in range(self.config.wm_batches):
-      batch = self.replay.sample_windows(self.config.wm_batch_size, 8)
+      batch = self.replay.sample_windows(
+        self.config.wm_batch_size, 8, world_history_length=self.world.history_length
+      )
       self.world_optimizer.zero_grad(set_to_none=True)
       # Full analytic heads are needed only for diagnostics, once per update.
       prediction = rollout(
@@ -363,6 +371,7 @@ class OnlineTrainer:
       10,
       horizon=cfg.horizon,
       clip_lengths=self.env.library.lengths,
+      world_history_length=self.world.history_length,
     )
     self.actor_optimizer.zero_grad(set_to_none=True)
     self.critic_optimizer.zero_grad(set_to_none=True)

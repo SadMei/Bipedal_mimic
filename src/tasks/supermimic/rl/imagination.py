@@ -82,6 +82,10 @@ def imagine(
   if horizon < 1:
     raise ValueError("Imagination horizon must be positive")
   state, history = starts["state"].detach(), starts["history"].detach()
+  world_history = world.history_from_batch(starts)
+  if world_history is not None:
+    # Real replay is a fixed initial condition; future predictions stay attached.
+    world_history = world_history.detach()
   context, motion, frame = (
     starts["context"],
     starts["motion_id"],
@@ -114,7 +118,18 @@ def imagine(
       context,
       future["body_quat_w"][:, t + 1],
     )
-    if kernels is None:
+    if world.recurrent:
+      action = actor.forward_features(history, goals[:, t])
+      next_state, world_history = world.step(state, action, context, world_history)
+      observation = world.kinematics.observation(
+        next_state,
+        action,
+        context,
+        future["body_quat_w"][:, t + 1],
+        relative_orientation=actor.relative_orientation,
+        motion_anchor_orientation=actor.motion_anchor_ori_b,
+      )
+    elif kernels is None:
       next_state, action, observation = imagination_step(actor, world, *step_args)
     else:
       next_state, action, observation = kernels.imag_step(*step_args)

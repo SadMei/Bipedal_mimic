@@ -31,7 +31,12 @@ def replay_diagnostics(world, replay, library, batch_size, fixed_windows, iterat
       key = str(horizon)
       if key not in fixed_windows and min(replay.steps, replay.capacity) >= horizon:
         try:
-          batch = replay.sample_windows(batch_size, horizon, require_full=True)
+          batch = replay.sample_windows(
+            batch_size,
+            horizon,
+            require_full=True,
+            world_history_length=world.history_length,
+          )
         except ValueError:
           pass
         else:

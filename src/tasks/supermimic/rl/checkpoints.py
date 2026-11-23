@@ -85,6 +85,10 @@ def training_config(saved: dict) -> dict:
     "critic_input_normalization": False,
     "world_prediction": "velocity_residual",
     "world_model_normalization": False,
+    "world_model_type": "mlp",
+    "world_history_length": 32,
+    "world_gru_hidden_size": 256,
+    "world_gru_layers": 2,
     "motion_anchor_ori_b": False,
     **saved["config"],
   }

@@ -37,6 +37,7 @@ class WorldModelPlayback:
     self.metrics = None
     self.diverged = False
     self.clip_stats = {}
+    self.real_world_history = self.world_history = None
 
   @torch.no_grad()
   def predict(self, action):
@@ -47,16 +48,28 @@ class WorldModelPlayback:
     if self.age >= self.horizon:
       self.state = self.actual.clone()
       self.context = self.env.context.detach().clone()
+      if getattr(self.model, "recurrent", False):
+        self.world_history = self.real_world_history.clone()
       self.age = 0
       self.diverged = False
     self.age += 1
-    if self.diverged:
-      return
     executed = action.detach()
     clip = self.env.foundation_config.action_clip
     if clip is not None:
       executed = executed.clamp(-clip, clip)
-    predicted = self.model(self.state, executed, self.context)
+    if getattr(self.model, "recurrent", False):
+      # Keep real context even after a forecast diverges, for the next resync.
+      self.real_world_history = self.model.append_history(
+        self.real_world_history, self.actual, executed, self.env.context
+      )
+    if self.diverged:
+      return
+    if getattr(self.model, "recurrent", False):
+      predicted, self.world_history = self.model.step(
+        self.state, executed, self.context, self.world_history
+      )
+    else:
+      predicted = self.model(self.state, executed, self.context)
     self.diverged = not bool(torch.isfinite(predicted).all())
     self.state = None if self.diverged else predicted.detach()
 
@@ -75,6 +88,9 @@ class WorldModelPlayback:
     if frame == 0:
       self.state = self.actual.clone()
       self.context = env.context.detach().clone()
+      if getattr(self.model, "recurrent", False):
+        self.real_world_history = self.model.empty_history(self.actual)
+        self.world_history = self.real_world_history.clone()
       self.age = 0
       self.diverged = False
       self.metrics = None
@@ -173,6 +189,10 @@ class WorldModelFuturePreview(WorldModelPlayback):
     def observed(history, reference):
       action = actor(history, reference)
       self.previous_action = self._executed(action).detach().clone()
+      if getattr(self.model, "recurrent", False):
+        self.real_world_history = self.model.append_history(
+          self.real_world_history, self.actual, self.previous_action, self.env.context
+        )
       return action
 
     return observed
@@ -193,18 +213,25 @@ class WorldModelFuturePreview(WorldModelPlayback):
     # References do not depend on imagined states: encode the whole window once.
     latents = run_mlp(self.actor.encoder, goals, self.actor.amp).tanh()
     state, history = self.actual.clone(), self.history.clone()
+    world_history = (
+      self.real_world_history.clone() if getattr(self.model, "recurrent", False) else None
+    )
     states = [state]
     for step in range(steps):
-      action = self._executed(
-        run_mlp(
-          self.actor.decoder,
-          torch.cat(
-            (latents[:, step], (history / self.actor.observation_scale).flatten(-2)), -1
-          ),
-          self.actor.amp,
+      if getattr(self.model, "recurrent", False):
+        action = self._executed(self.actor.forward_features(history, goals[:, step]))
+        state, world_history = self.model.step(state, action, self.context, world_history)
+      else:
+        action = self._executed(
+          run_mlp(
+            self.actor.decoder,
+            torch.cat(
+              (latents[:, step], (history / self.actor.observation_scale).flatten(-2)), -1
+            ),
+            self.actor.amp,
+          )
         )
-      )
-      state = self.model(state, action, self.context)
+        state = self.model(state, action, self.context)
       observation = self.model.kinematics.observation(
         state,
         action,

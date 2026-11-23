@@ -13,3 +13,6 @@ __pycache__/
 .pytest_cache/
 build/
 dist/
+
+# Generated videos and associated artifacts at any directory depth.
+**/videos/

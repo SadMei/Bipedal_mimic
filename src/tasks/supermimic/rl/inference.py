@@ -81,6 +81,10 @@ def load_world_model(
     config.get("amp", "none"),
     world_prediction=config.get("world_prediction", "velocity_residual"),
     world_model_normalization=config.get("world_model_normalization", False),
+    world_model_type=config.get("world_model_type", "mlp"),
+    world_history_length=config.get("world_history_length", 32),
+    world_gru_hidden_size=config.get("world_gru_hidden_size", 256),
+    world_gru_layers=config.get("world_gru_layers", 2),
     motion_anchor_ori_b=config.get("motion_anchor_ori_b", False),
   )
   try:
